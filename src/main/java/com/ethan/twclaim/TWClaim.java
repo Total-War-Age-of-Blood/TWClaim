@@ -37,7 +37,7 @@ public final class TWClaim extends JavaPlugin {
         File player_data_folder = new File(getDataFolder(), "PlayerData");
         if (!player_data_folder.exists()) {player_data_folder.mkdir();}
         File tribe_data_folder = new File(getDataFolder(), "TribeData");
-        if (!player_data_folder.exists()) {player_data_folder.mkdir();}
+        if (!tribe_data_folder.exists()) {tribe_data_folder.mkdir();}
 
         // Load Tribes data from files
         TribeData tribe_hashmap = new TribeData();

@@ -1,7 +1,6 @@
 package com.ethan.twclaim.data;
 
 import com.ethan.twclaim.TWClaim;
-import com.google.gson.Gson;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,7 +14,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class PlayerData implements Listener {
-    public static  HashMap<UUID, PlayerData> player_data_hashmap = new HashMap<>();
+    public static HashMap<UUID, PlayerData> player_data_hashmap = new HashMap<>();
 
     // Load PlayerData into HashMap when player joins
     @EventHandler
@@ -34,11 +33,10 @@ public class PlayerData implements Listener {
             }
             System.out.println("Player has file on record.");
             File player_file = new File(player_folder, e.getPlayer().getUniqueId() + ".json");
-            Gson gson = new Gson();
             try {
                 System.out.println("Putting PlayerData in HashMap.");
                 FileReader player_file_reader = new FileReader(player_file);
-                PlayerData player_data = gson.fromJson(player_file_reader, PlayerData.class);
+                PlayerData player_data = TWClaim.getGson().fromJson(player_file_reader, PlayerData.class);
                 player_data_hashmap.put(player.getUniqueId(), player_data);
             } catch (IOException exception) {
                 exception.printStackTrace();
@@ -50,7 +48,7 @@ public class PlayerData implements Listener {
             return;
         }
         // If the player does not have a file, make them one and load into Hashmap.
-        PlayerData player_data = new PlayerData(false, false, "");
+        PlayerData player_data = new PlayerData(new HashMap<>(), player.getDisplayName(), player.getUniqueId());
         try {
             // Check to see if the necessary directories already exist.
             File player_data_folder = new File(TWClaim.getPlugin().getDataFolder(), "PlayerData");
@@ -63,9 +61,8 @@ public class PlayerData implements Listener {
                 file.createNewFile();
             }
 
-            Gson gson = new Gson();
             Writer writer = new FileWriter(file, false);
-            gson.toJson(player_data, writer);
+            TWClaim.getGson().toJson(player_data, writer);
             writer.flush();
             writer.close();
 
@@ -77,57 +74,50 @@ public class PlayerData implements Listener {
     }
 
     // Remove PlayerData from HashMap when player leaves
-    // TODO Finish implementing saving/loading for PlayerData and TribeData
     @EventHandler
-    public void onPlayerLeave(PlayerQuitEvent event){
+    public void onPlayerLeave(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         player_data_hashmap.remove(player.getUniqueId());
     }
 
-    boolean in_tribe;
-    boolean leader;
-    String tribe;
+    // A list of tribes the player belongs to, which should reduce the amount of searching through files the plugin
+    // has to do.
+    // TODO figure out what happens if a player is a member of two tribes with the same name. How can someone tell
+    //  which tribe they are sending commands for?
+    HashMap<UUID, String> tribes;
+    String display;
+    UUID uuid;
 
     // Empty constructor for when this class needs to be called empty.
-    public PlayerData(){
+    public PlayerData() {
 
     }
 
-    public PlayerData(boolean in_tribe, boolean leader, String tribe) {
-        this.in_tribe = in_tribe;
-        this.leader = leader;
-        this.tribe = tribe;
+    public PlayerData(HashMap<UUID, String> tribes, String display, UUID uuid) {
+        this.tribes = tribes;
     }
 
-    public static HashMap<UUID, PlayerData> getPlayer_data_hashmap() {
-        return player_data_hashmap;
+    public HashMap<UUID, String> getTribes() {
+        return tribes;
     }
 
-    public static void setPlayer_data_hashmap(HashMap<UUID, PlayerData> player_data_hashmap) {
-        PlayerData.player_data_hashmap = player_data_hashmap;
+    public void setTribes(HashMap<UUID, String> tribes) {
+        this.tribes = tribes;
     }
 
-    public boolean isIn_tribe() {
-        return in_tribe;
+    public String getDisplay() {
+        return display;
     }
 
-    public void setIn_tribe(boolean in_tribe) {
-        this.in_tribe = in_tribe;
+    public void setDisplay(String display) {
+        this.display = display;
     }
 
-    public boolean isLeader() {
-        return leader;
+    public UUID getUuid() {
+        return uuid;
     }
 
-    public void setLeader(boolean leader) {
-        this.leader = leader;
-    }
-
-    public String getTribe() {
-        return tribe;
-    }
-
-    public void setTribe(String tribe) {
-        this.tribe = tribe;
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
     }
 }

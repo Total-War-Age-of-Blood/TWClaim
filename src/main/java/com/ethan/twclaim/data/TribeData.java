@@ -8,10 +8,8 @@ import java.io.IOException;
 import java.util.*;
 
 public class TribeData {
-
-    // Unlike PlayerData, the Tribe files will be based on Tribe name, as they can change ownership
     public static HashMap<String, TribeData> tribe_hashmap = new HashMap<>();
-    private final transient File tribes_folder = new File(TWClaim.getPlugin().getDataFolder(), "Tribes");
+    private final transient File tribes_folder = new File(TWClaim.getPlugin().getDataFolder(), "TribeData");
 
     public TribeData() {
 
@@ -31,7 +29,7 @@ public class TribeData {
     public void saveTribes(){
         for (Map.Entry<String, TribeData> entry : tribe_hashmap.entrySet()){
             try {
-                File save_file = new File(tribes_folder, entry.getValue().getLeader() + ".json");
+                File save_file = new File(tribes_folder, entry.getValue().getTribeID() + ".json");
                 FileWriter file_writer = new FileWriter(save_file, false);
                 TWClaim.getGson().toJson(entry.getValue(), file_writer);
                 file_writer.flush();
@@ -40,19 +38,29 @@ public class TribeData {
         }
     }
 
-
+    UUID tribeID;
     String name;
     UUID leader;
-    List<String> allies;
-    List<String> enemies;
-    List<UUID> members;
+    // A list of tribe members. The String value is their perms group.
+    HashMap<UUID, String> members;
+    // The first String is the name of the perms group within the tribe. The second string will be the code for which
+    // perms that group has access to. Ex: "--aob-".
+    HashMap<String, String> permGroups;
 
-    public TribeData(String name, UUID leader, List<String> allies, List<String> enemies, List<UUID> members) {
+    public TribeData(UUID tribeID, String name, UUID leader, HashMap<UUID, String> members, HashMap<String, String> permGroups) {
+        this.tribeID = tribeID;
         this.name = name;
         this.leader = leader;
-        this.allies = allies;
-        this.enemies = enemies;
         this.members = members;
+        this.permGroups = permGroups;
+    }
+
+    public UUID getTribeID() {
+        return tribeID;
+    }
+
+    public void setTribeID(UUID tribeID) {
+        this.tribeID = tribeID;
     }
 
     public String getName() {
@@ -71,27 +79,19 @@ public class TribeData {
         this.leader = leader;
     }
 
-    public List<String> getAllies() {
-        return allies;
-    }
-
-    public void setAllies(List<String> allies) {
-        this.allies = allies;
-    }
-
-    public List<String> getEnemies() {
-        return enemies;
-    }
-
-    public void setEnemies(List<String> enemies) {
-        this.enemies = enemies;
-    }
-
-    public List<UUID> getMembers() {
+    public HashMap<UUID, String> getMembers() {
         return members;
     }
 
-    public void setMembers(List<UUID> members) {
+    public void setMembers(HashMap<UUID, String> members) {
         this.members = members;
+    }
+
+    public HashMap<String, String> getPermGroups() {
+        return permGroups;
+    }
+
+    public void setPermGroups(HashMap<String, String> permGroups) {
+        this.permGroups = permGroups;
     }
 }
