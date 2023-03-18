@@ -1,1 +1,7 @@
 # Welcome to the TWClaim Config!
+# List of materials that can be used for reinforcement and how many reinforcement points they give
+reinforcements:
+  - diamond: 10
+
+# The min reinforcement percentage that reinforcement mats can be recovered when someone with perms breaks the block
+recover-min: 0

@@ -3,12 +3,17 @@ package com.ethan.twclaim;
 import com.ethan.twclaim.commands.TribeCommand;
 import com.ethan.twclaim.data.PlayerData;
 import com.ethan.twclaim.data.TribeData;
+import com.ethan.twclaim.events.BreakReinforcement;
+import com.ethan.twclaim.events.Fortify;
+import com.ethan.twclaim.events.Reinforce;
 import com.google.gson.Gson;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public final class TWClaim extends JavaPlugin {
     private static TWClaim plugin;
@@ -29,6 +34,9 @@ public final class TWClaim extends JavaPlugin {
 
         // Event Listeners
         Bukkit.getPluginManager().registerEvents(new PlayerData(), this);
+        Bukkit.getPluginManager().registerEvents(new Reinforce(), this);
+        Bukkit.getPluginManager().registerEvents(new BreakReinforcement(), this);
+        Bukkit.getPluginManager().registerEvents(new Fortify(), this);
 
         // Plugin Commands
         getCommand("tribe").setExecutor(new TribeCommand());
@@ -48,6 +56,19 @@ public final class TWClaim extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        for (PlayerData playerData : PlayerData.player_data_hashmap.values()){
+            File playerFolder = new File(TWClaim.getPlugin().getDataFolder(), "PlayerData");
+            File playerFile = new File(playerFolder, playerData.getUuid() + ".json");
+            try {
+                FileWriter playerFileWriter = new FileWriter(playerFile, false);
+                TWClaim.getGson().toJson(playerData, playerFileWriter);
+                playerFileWriter.flush();
+                playerFileWriter.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         TribeData tribe_hashmap = new TribeData();
         tribe_hashmap.saveTribes();
     }

@@ -8,7 +8,8 @@ import java.io.IOException;
 import java.util.*;
 
 public class TribeData {
-    public static HashMap<String, TribeData> tribe_hashmap = new HashMap<>();
+    public static HashMap<UUID, TribeData> tribe_hashmap = new HashMap<>();
+    public static HashMap<String, UUID> tribeConversionHashmap = new HashMap<>();
     private final transient File tribes_folder = new File(TWClaim.getPlugin().getDataFolder(), "TribeData");
 
     public TribeData() {
@@ -21,13 +22,14 @@ public class TribeData {
             try{
                 FileReader file_reader = new FileReader(file);
                 TribeData tribe_data = TWClaim.getGson().fromJson(file_reader, TribeData.class);
-                tribe_hashmap.put(tribe_data.getName(), tribe_data);
+                tribe_hashmap.put(tribe_data.getTribeID(), tribe_data);
+                tribeConversionHashmap.put(tribe_data.getName(), tribe_data.getTribeID());
             }catch (IOException exception){exception.printStackTrace();}
         }
     }
 
     public void saveTribes(){
-        for (Map.Entry<String, TribeData> entry : tribe_hashmap.entrySet()){
+        for (Map.Entry<UUID, TribeData> entry : tribe_hashmap.entrySet()){
             try {
                 File save_file = new File(tribes_folder, entry.getValue().getTribeID() + ".json");
                 FileWriter file_writer = new FileWriter(save_file, false);
@@ -45,14 +47,17 @@ public class TribeData {
     HashMap<UUID, String> members;
     // The first String is the name of the perms group within the tribe. The second string will be the code for which
     // perms that group has access to. Ex: "--aob-".
+    // Current perms: kick-k invite-i reinforce-r switch-s
     HashMap<String, String> permGroups;
+    List<UUID> invites;
 
-    public TribeData(UUID tribeID, String name, UUID leader, HashMap<UUID, String> members, HashMap<String, String> permGroups) {
+    public TribeData(UUID tribeID, String name, UUID leader, HashMap<UUID, String> members, HashMap<String, String> permGroups, List<UUID> invites) {
         this.tribeID = tribeID;
         this.name = name;
         this.leader = leader;
         this.members = members;
         this.permGroups = permGroups;
+        this.invites = invites;
     }
 
     public UUID getTribeID() {
@@ -93,5 +98,13 @@ public class TribeData {
 
     public void setPermGroups(HashMap<String, String> permGroups) {
         this.permGroups = permGroups;
+    }
+
+    public List<UUID> getInvites() {
+        return invites;
+    }
+
+    public void setInvites(List<UUID> invites) {
+        this.invites = invites;
     }
 }
