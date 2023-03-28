@@ -23,7 +23,7 @@ public class TribeData {
                 FileReader file_reader = new FileReader(file);
                 TribeData tribe_data = TWClaim.getGson().fromJson(file_reader, TribeData.class);
                 tribe_hashmap.put(tribe_data.getTribeID(), tribe_data);
-                tribeConversionHashmap.put(tribe_data.getName(), tribe_data.getTribeID());
+                tribeConversionHashmap.put(tribe_data.getName().toLowerCase(), tribe_data.getTribeID());
             }catch (IOException exception){exception.printStackTrace();}
         }
     }

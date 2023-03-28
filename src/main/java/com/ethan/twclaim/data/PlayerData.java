@@ -2,6 +2,7 @@ package com.ethan.twclaim.data;
 
 import com.ethan.twclaim.TWClaim;
 import org.bukkit.Bukkit;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -42,7 +43,8 @@ public class PlayerData implements Listener {
         }
 
         // If the player does not have a file, make them one and load into Hashmap.
-        PlayerData playerData = new PlayerData(new HashMap<>(), new ArrayList<>(), player.getDisplayName(), player.getUniqueId(), false, player.getUniqueId(), false, player.getUniqueId());
+        PlayerData playerData = new PlayerData(new HashMap<>(), new ArrayList<>(), player.getDisplayName(),
+                player.getUniqueId(), new HashMap<>(), "None");
         try {
             // Check to see if the necessary directories already exist.
             File playerDataFolder = new File(TWClaim.getPlugin().getDataFolder(), "PlayerData");
@@ -93,26 +95,25 @@ public class PlayerData implements Listener {
     List<String> invites;
     String display;
     UUID uuid;
-    boolean isReinforcing;
-    UUID reinforcing;
-    boolean isFortifying;
-    UUID fortifying;
+    HashMap<String, Block> claimSelect = new HashMap<>();
+    // Replacing isFortifying, isReinforcing, isInspecting, and isClaiming
+    String mode;
+    // Replacing reinforcing, fortifying, and claiming
+    UUID target;
 
     // Empty constructor for when this class needs to be called empty.
     public PlayerData() {
 
     }
 
-    public PlayerData(HashMap<UUID, String> tribes, List<String> invites, String display, UUID uuid, boolean isReinforcing,
-                      UUID reinforcing, boolean isFortifying, UUID fortifying) {
+    public PlayerData(HashMap<UUID, String> tribes, List<String> invites, String display, UUID uuid,
+                      HashMap<String, Block> claimSelect, String mode) {
         this.tribes = tribes;
         this.invites = invites;
         this.display = display;
         this.uuid = uuid;
-        this.isReinforcing = isReinforcing;
-        this.reinforcing = reinforcing;
-        this.isFortifying = isFortifying;
-        this.fortifying = fortifying;
+        this.claimSelect = claimSelect;
+        this.mode = mode;
     }
 
     public HashMap<UUID, String> getTribes() {
@@ -147,35 +148,27 @@ public class PlayerData implements Listener {
         this.invites = invites;
     }
 
-    public boolean isReinforcing() {
-        return isReinforcing;
+    public HashMap<String, Block> getClaimSelect() {
+        return claimSelect;
     }
 
-    public void setReinforcing(boolean reinforcing) {
-        isReinforcing = reinforcing;
+    public void setClaimSelect(HashMap<String, Block> claimSelect) {
+        this.claimSelect = claimSelect;
     }
 
-    public UUID getReinforcing() {
-        return reinforcing;
+    public String getMode() {
+        return mode;
     }
 
-    public void setReinforcing(UUID reinforcing) {
-        this.reinforcing = reinforcing;
+    public void setMode(String mode) {
+        this.mode = mode;
     }
 
-    public boolean isFortifying() {
-        return isFortifying;
+    public UUID getTarget() {
+        return target;
     }
 
-    public void setFortifying(boolean fortifying) {
-        isFortifying = fortifying;
-    }
-
-    public UUID getFortifying() {
-        return fortifying;
-    }
-
-    public void setFortifying(UUID fortifying) {
-        this.fortifying = fortifying;
+    public void setTarget(UUID target) {
+        this.target = target;
     }
 }

@@ -33,7 +33,9 @@ public class BreakReinforcement implements Listener {
         NamespacedKey key = new NamespacedKey(TWClaim.getPlugin(TWClaim.class), "reinforcement");
         NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(TWClaim.class), "owner");
         // Check that block is reinforced
-        if (!container.has(key, PersistentDataType.INTEGER) || !container.has(ownKey, PersistentDataType.STRING)){return;}
+        if (!container.has(key, PersistentDataType.INTEGER) || !container.has(ownKey, PersistentDataType.STRING)){
+            System.out.println("Not reinforced");
+            return;}
         // Check if player has permission to break the block. First, check if player is member of the tribe that owns
         // the block. Then, check if the player has "break" in their permission string.
         PlayerData playerData = PlayerData.player_data_hashmap.get(player.getUniqueId());
@@ -41,6 +43,7 @@ public class BreakReinforcement implements Listener {
         int reinforcement = container.get(key, PersistentDataType.INTEGER);
         ArrayList<HashMap<String, Integer>> reinforcements = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get("reinforcements");
         if ((playerData.getTribes().containsKey(owner))){
+            System.out.println("Tribe owner");
             TribeData tribe = TribeData.tribe_hashmap.get(owner);
             String permsGroup = tribe.getMembers().get(player.getUniqueId());
             String perms = tribe.getPermGroups().get(permsGroup);
@@ -68,15 +71,20 @@ public class BreakReinforcement implements Listener {
                 return;
             }
         } else if (player.getUniqueId().equals(owner)){
+            System.out.println("Private owner");
+            System.out.println(reinforcements);
             // Get material and reinforcement points from the config
             for (HashMap<String, Integer> hash : reinforcements){
                 for (String material : hash.keySet()){
-                    if (!(material.equalsIgnoreCase(materialKey.getKey()))){
+                    System.out.println(material);
+                    System.out.println(materialKey.getKey());
+                    if (!(material.equalsIgnoreCase(container.get(materialKey, PersistentDataType.STRING)))){
                         continue;
                     }
                     // When we find the material, get its key and divide the block's current reinforcement
                     int configReinforcement = hash.get(material);
                     // If it is above the percentage, drop the material as well as the block
+                    System.out.println(reinforcement / configReinforcement * 100);
                     if (reinforcement / configReinforcement * 100 >= (int) TWClaim.getPlugin().getConfig().get("recover-min")){
                         ItemStack item = new ItemStack(Material.matchMaterial(material));
                         player.getWorld().dropItem(block.getLocation(), item);

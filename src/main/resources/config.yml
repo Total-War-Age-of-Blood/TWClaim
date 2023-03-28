@@ -5,3 +5,9 @@ reinforcements:
 
 # The min reinforcement percentage that reinforcement mats can be recovered when someone with perms breaks the block
 recover-min: 0
+
+# The radius around the player that the claims map will be generated
+map-radius: 4
+
+# The limit of blocks someone can select at once with the claim command
+claim-limit: 1000

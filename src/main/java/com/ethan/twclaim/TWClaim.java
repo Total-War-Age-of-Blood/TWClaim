@@ -3,9 +3,7 @@ package com.ethan.twclaim;
 import com.ethan.twclaim.commands.TribeCommand;
 import com.ethan.twclaim.data.PlayerData;
 import com.ethan.twclaim.data.TribeData;
-import com.ethan.twclaim.events.BreakReinforcement;
-import com.ethan.twclaim.events.Fortify;
-import com.ethan.twclaim.events.Reinforce;
+import com.ethan.twclaim.events.*;
 import com.google.gson.Gson;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
@@ -14,6 +12,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public final class TWClaim extends JavaPlugin {
     private static TWClaim plugin;
@@ -37,6 +38,8 @@ public final class TWClaim extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new Reinforce(), this);
         Bukkit.getPluginManager().registerEvents(new BreakReinforcement(), this);
         Bukkit.getPluginManager().registerEvents(new Fortify(), this);
+        Bukkit.getPluginManager().registerEvents(new InspectEvent(), this);
+        Bukkit.getPluginManager().registerEvents(new Claim(), this);
 
         // Plugin Commands
         getCommand("tribe").setExecutor(new TribeCommand());
@@ -56,7 +59,9 @@ public final class TWClaim extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
-        for (PlayerData playerData : PlayerData.player_data_hashmap.values()){
+/*        for (PlayerData playerData : PlayerData.player_data_hashmap.values()){
+            playerData.setMode("None");
+            playerData.setTarget(playerData.getUuid());
             File playerFolder = new File(TWClaim.getPlugin().getDataFolder(), "PlayerData");
             File playerFile = new File(playerFolder, playerData.getUuid() + ".json");
             try {
@@ -67,7 +72,7 @@ public final class TWClaim extends JavaPlugin {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
+        }*/
 
         TribeData tribe_hashmap = new TribeData();
         tribe_hashmap.saveTribes();

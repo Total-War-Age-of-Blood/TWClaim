@@ -28,7 +28,7 @@ public class Reinforce implements Listener {
         Player player = e.getPlayer();
         // Check that player is in reinforcement mode
         PlayerData playerData = PlayerData.player_data_hashmap.get(player.getUniqueId());
-        if (!playerData.isReinforcing()){return;}
+        if (!playerData.getMode().equalsIgnoreCase("Reinforce")){return;}
 
         Block block = e.getClickedBlock();
         // Not all blocks have persistent data containers, so we need to use the chunk's PDC.
@@ -59,7 +59,7 @@ public class Reinforce implements Listener {
                 container.set(key, PersistentDataType.INTEGER, reinforcement);
                 // This key keeps track of the owning tribe
                 NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(TWClaim.class), "owner");
-                container.set(ownKey, PersistentDataType.STRING, playerData.getReinforcing().toString());
+                container.set(ownKey, PersistentDataType.STRING, playerData.getTarget().toString());
                 // Remove 1 item from player's hand
                 ItemStack item = player.getInventory().getItemInMainHand();
                 item.setAmount(item.getAmount() - 1);
