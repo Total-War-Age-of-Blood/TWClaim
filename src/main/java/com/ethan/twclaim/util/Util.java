@@ -3,13 +3,15 @@ package com.ethan.twclaim.util;
 import com.ethan.twclaim.TWClaim;
 import com.ethan.twclaim.data.PlayerData;
 import com.ethan.twclaim.data.TribeData;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class Util {
     public static boolean checkTribe(String name){
@@ -21,7 +23,7 @@ public class Util {
             tribeFound = true;
             break;
         }
-        return tribeFound;
+        return !tribeFound;
     }
 
     public static void removeReinforcement(PersistentDataContainer container, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey){
@@ -59,5 +61,15 @@ public class Util {
             n++;
         }
         return reinforcements;
+    }
+
+    public static void generateGUI(Inventory gui, Material material, String display, String lore, int place){
+        ItemStack item = new ItemStack(material);
+        ItemMeta itemMeta = item.getItemMeta();
+        assert itemMeta != null;
+        itemMeta.setDisplayName(display);
+        itemMeta.setLore(Collections.singletonList(lore));
+        item.setItemMeta(itemMeta);
+        gui.setItem(place, item);
     }
 }

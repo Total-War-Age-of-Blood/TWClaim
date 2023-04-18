@@ -1,4 +1,4 @@
-package com.ethan.twclaim.events;
+package com.ethan.twclaim.Listeners;
 
 import com.ethan.twclaim.TWClaim;
 import com.ethan.twclaim.data.PlayerData;
@@ -23,8 +23,8 @@ import java.util.UUID;
 public class InspectEvent implements Listener {
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent e){
-        // Cancel if event is firing for left click.
-        if (e.getHand().equals(EquipmentSlot.HAND)){return;}
+        // Cancel if event is firing for right click.
+        if (e.getHand().equals(EquipmentSlot.OFF_HAND)){return;}
         // Make sure player was interacting with a block
         if (e.getClickedBlock() == null){return;}
         Player player = e.getPlayer();
@@ -32,6 +32,7 @@ public class InspectEvent implements Listener {
 
         // Check if player is inspecting
         if (!playerData.getMode().equalsIgnoreCase("Inspect")){return;}
+        e.setCancelled(true);
 
         // Give player information on the block
         List<String> messages = new ArrayList<>();
@@ -39,7 +40,7 @@ public class InspectEvent implements Listener {
         // Coordinates of the block
         messages.add("Coordinates: X(" + block.getX() + ")" + " Y(" + block.getY() + ")" + " Z(" + block.getZ() + ")");
         // Owner of the block
-        PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
+        final PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
         if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING)){
             messages.add("Owner: None");
         } else{
@@ -52,10 +53,13 @@ public class InspectEvent implements Listener {
                 messages.add("Owner: " + ownerPlayer.getName());
             }
         }
-        // TODO reinforcement does not exist if block does not have owner key. Inspect currently broken if block is unclaimed
         // Reinforcement Value
-        int reinforcement = container.get(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER);
-        messages.add("Reinforcement: " + reinforcement);
+        if (container.get(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER) == null){
+            messages.add("Reinforcement: None");
+        } else {
+            int reinforcement = container.get(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER);
+            messages.add("Reinforcement: " + reinforcement);
+        }
         player.sendMessage(String.join("\n", messages));
     }
 }

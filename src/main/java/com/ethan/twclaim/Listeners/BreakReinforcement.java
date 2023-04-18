@@ -1,4 +1,4 @@
-package com.ethan.twclaim.events;
+package com.ethan.twclaim.Listeners;
 
 import com.ethan.twclaim.TWClaim;
 import com.ethan.twclaim.data.PlayerData;
@@ -28,10 +28,10 @@ public class BreakReinforcement implements Listener {
         Player player = e.getPlayer();
         Block block = e.getBlock();
         // Get the block's persistent data container
-        PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
-        NamespacedKey materialKey = new NamespacedKey(TWClaim.getPlugin(TWClaim.class), "material");
-        NamespacedKey key = new NamespacedKey(TWClaim.getPlugin(TWClaim.class), "reinforcement");
-        NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(TWClaim.class), "owner");
+        final PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
+        NamespacedKey materialKey = new NamespacedKey(TWClaim.getPlugin(), "material");
+        NamespacedKey key = new NamespacedKey(TWClaim.getPlugin(), "reinforcement");
+        NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(), "owner");
         // Check that block is reinforced
         if (!container.has(key, PersistentDataType.INTEGER) || !container.has(ownKey, PersistentDataType.STRING)){
             System.out.println("Not reinforced");

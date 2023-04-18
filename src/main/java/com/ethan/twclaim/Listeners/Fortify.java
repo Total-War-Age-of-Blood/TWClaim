@@ -1,4 +1,4 @@
-package com.ethan.twclaim.events;
+package com.ethan.twclaim.Listeners;
 
 import com.ethan.twclaim.TWClaim;
 import com.ethan.twclaim.data.PlayerData;
@@ -35,14 +35,14 @@ public class Fortify implements Listener {
             if (!reinforcements.containsKey(item.getType().toString().toLowerCase())){continue;}
             int reinforcement = reinforcements.get(item.getType().toString().toLowerCase());
             // If there is a match, add reinforcement to the block and delete reinforcement item from inventory
-            PersistentDataContainer container = new CustomBlockData(e.getBlock(), TWClaim.getPlugin());
-            NamespacedKey materialKey = new NamespacedKey(TWClaim.getPlugin(TWClaim.class), "material");
+            final PersistentDataContainer container = new CustomBlockData(e.getBlock(), TWClaim.getPlugin());
+            NamespacedKey materialKey = new NamespacedKey(TWClaim.getPlugin(), "material");
             container.set(materialKey, PersistentDataType.STRING, item.getType().toString().toLowerCase());
             // This key keeps track of the reinforcement value of the block
-            NamespacedKey key = new NamespacedKey(TWClaim.getPlugin(TWClaim.class), "reinforcement");
+            NamespacedKey key = new NamespacedKey(TWClaim.getPlugin(), "reinforcement");
             container.set(key, PersistentDataType.INTEGER, reinforcement);
             // This key keeps track of the owning tribe
-            NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(TWClaim.class), "owner");
+            NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(), "owner");
             container.set(ownKey, PersistentDataType.STRING, playerData.getTarget().toString());
 
             // Remove material from inventory

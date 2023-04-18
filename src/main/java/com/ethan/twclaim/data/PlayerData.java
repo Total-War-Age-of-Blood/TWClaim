@@ -86,19 +86,16 @@ public class PlayerData implements Listener {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println(player.getDisplayName() + " saved!");
         player_data_hashmap.remove(player.getUniqueId());
     }
 
-    // A list of tribes the player belongs to, which should reduce the amount of searching through files the plugin
-    // has to do.
     HashMap<UUID, String> tribes;
     List<String> invites;
     String display;
     UUID uuid;
     HashMap<String, Block> claimSelect = new HashMap<>();
-    // Replacing isFortifying, isReinforcing, isInspecting, and isClaiming
     String mode;
-    // Replacing reinforcing, fortifying, and claiming
     UUID target;
 
     // Empty constructor for when this class needs to be called empty.

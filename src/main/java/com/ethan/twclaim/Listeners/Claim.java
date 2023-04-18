@@ -1,4 +1,4 @@
-package com.ethan.twclaim.events;
+package com.ethan.twclaim.Listeners;
 
 import com.ethan.twclaim.data.PlayerData;
 import org.bukkit.block.Block;

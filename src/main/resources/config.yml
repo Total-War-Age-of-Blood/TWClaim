@@ -3,6 +3,34 @@
 reinforcements:
   - diamond: 10
 
+# Bastions consume fuel to work. Set the fuel types and values here.
+bastion-fuel:
+  - diamond: 10
+
+# The rate at which bastions consume fuel
+
+# Costs for bastion upgrades
+anti-flight:
+  - diamond: 10
+  - fuel: 10
+
+anti-teleport:
+  - diamond: 10
+  - fuel: 10
+
+range:
+  - diamond: 10
+  - fuel: 10
+
+surveillance:
+  - diamond: 10
+  - fuel: 10
+
+exp-storage:
+  - diamond: 10
+  - fuel: 10
+
+
 # The min reinforcement percentage that reinforcement mats can be recovered when someone with perms breaks the block
 recover-min: 0
 

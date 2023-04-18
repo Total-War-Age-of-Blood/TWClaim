@@ -26,6 +26,8 @@ public class TribeData {
                 tribeConversionHashmap.put(tribe_data.getName().toLowerCase(), tribe_data.getTribeID());
             }catch (IOException exception){exception.printStackTrace();}
         }
+        System.out.println(tribe_hashmap);
+        System.out.println(tribeConversionHashmap);
     }
 
     public void saveTribes(){
@@ -36,6 +38,7 @@ public class TribeData {
                 TWClaim.getGson().toJson(entry.getValue(), file_writer);
                 file_writer.flush();
                 file_writer.close();
+                System.out.println(entry.getValue().name + " saved!");
             }catch (IOException exception){exception.printStackTrace();}
         }
     }
@@ -47,7 +50,7 @@ public class TribeData {
     HashMap<UUID, String> members;
     // The first String is the name of the perms group within the tribe. The second string will be the code for which
     // perms that group has access to. Ex: "--aob-".
-    // Current perms: kick-k invite-i reinforce-r switch-s
+    // Current perms: kick-k invite-i reinforce-r switch-s bastion-b
     HashMap<String, String> permGroups;
     List<UUID> invites;
 
