@@ -8,6 +8,7 @@ import com.ethan.twclaim.util.Util;
 import com.jeff_media.customblockdata.CustomBlockData;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -21,7 +22,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.UUID;
 
 public class BastionEvents implements Listener {
@@ -32,7 +37,8 @@ public class BastionEvents implements Listener {
         ItemMeta itemMeta = item.getItemMeta();
         final PersistentDataContainer container = itemMeta.getPersistentDataContainer();
         if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){return;}
-        Bastion.createBastion(e.getBlockPlaced(), 30);
+        ArrayList<Integer> rangeList = (ArrayList<Integer>) TWClaim.getPlugin().getConfig().get("bastion-ranges");
+        Bastion.createBastion(e.getBlockPlaced(), rangeList.get(0));
         e.getPlayer().sendMessage("Bastion Placed.");
     }
     @EventHandler
@@ -73,14 +79,19 @@ public class BastionEvents implements Listener {
     }
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent e){
-        if (!e.getCause().equals(PlayerTeleportEvent.TeleportCause.CHORUS_FRUIT) || !e.getCause().equals(PlayerTeleportEvent.TeleportCause.ENDER_PEARL)){return;}
+        if (!e.getCause().equals(PlayerTeleportEvent.TeleportCause.CHORUS_FRUIT) && !e.getCause().equals(PlayerTeleportEvent.TeleportCause.ENDER_PEARL)){return;}
         // Check if player is in range of bastion
         Player player = e.getPlayer();
-        if (Bastion.inBastionRange(player) == null){return;}
-        // Check if player is member of bastion
-        Bastion bastion = Bastion.inBastionRange(player);
+        if (Bastion.inBastionRange(e.getTo()) == null){return;}
+        Bastion bastion = Bastion.inBastionRange(e.getTo());
+        if (!hasFuel(bastion)){return;}
         Block block = player.getWorld().getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
         PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
+        // Check if bastion has anti-teleport
+        if (container.get(new NamespacedKey(TWClaim.getPlugin(), "anti-teleport"), PersistentDataType.INTEGER) == null){return;}
+        if (container.get(new NamespacedKey(TWClaim.getPlugin(), "anti-teleport"), PersistentDataType.INTEGER) == 0){return;}
+        // TODO check if activeUpgrades has T
+        // Check if player is member of bastion
         UUID owner = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING));
         if (Util.isTribe(owner)){
             if (Util.isInTribe(player.getUniqueId(), owner)){return;}
@@ -95,9 +106,10 @@ public class BastionEvents implements Listener {
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent e){
         Player player = e.getPlayer();
-        if (Bastion.inBastionRange(player) == null){return;}
+        if (Bastion.inBastionRange(player.getLocation()) == null){return;}
         // Check if player is member of bastion
-        Bastion bastion = Bastion.inBastionRange(player);
+        Bastion bastion = Bastion.inBastionRange(player.getLocation());
+        if (!hasFuel(bastion)){return;}
         Block block = player.getWorld().getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
         final PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
         if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "owner"),PersistentDataType.STRING)){return;}
@@ -113,12 +125,18 @@ public class BastionEvents implements Listener {
     }
 
     @EventHandler
-    public void onPlayerMove(PlayerMoveEvent e){
+    public void onPlayerGlide(PlayerMoveEvent e){
         Player player = e.getPlayer();
-        if (Bastion.inBastionRange(player) == null || !player.isGliding()){return;}
-        Bastion bastion = Bastion.inBastionRange(player);
+        if (Bastion.inBastionRange(player.getLocation()) == null || !player.isGliding()){return;}
+        Bastion bastion = Bastion.inBastionRange(player.getLocation());
+        if (!hasFuel(bastion)){return;}
         Block block = player.getWorld().getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
         final PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
+        // Check if bastion has anti-flight
+        if (container.get(new NamespacedKey(TWClaim.getPlugin(), "anti-flight"), PersistentDataType.INTEGER) == null){return;}
+        if (container.get(new NamespacedKey(TWClaim.getPlugin(), "anti-flight"), PersistentDataType.INTEGER) == 0){return;}
+        String activeUpgrades = container.get(new NamespacedKey(TWClaim.getPlugin(), "active-upgrades"), PersistentDataType.STRING);
+        if (!activeUpgrades.contains("F")){return;}
         UUID owner = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING));
         if (Util.isTribe(owner)){
             if (Util.isInTribe(player.getUniqueId(), owner)){return;}
@@ -128,5 +146,39 @@ public class BastionEvents implements Listener {
             player.setGliding(false);
             player.sendMessage(ChatColor.RED + "Strangers cannot glide inside bastion radius");
         }
+    }
+
+    @EventHandler
+    public void onEnterSurveillance(PlayerMoveEvent e){
+        Player player = e.getPlayer();
+        if (Bastion.inBastionRange(player.getLocation()) == null){return;}
+        // Check if bastion has surveillance
+        Bastion bastion = Bastion.inBastionRange(player.getLocation());
+        // Check if bastion has fuel
+        if (!hasFuel(bastion)){return;}
+        Block block = player.getWorld().getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
+        PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
+        int surveillanceLevel = container.get(new NamespacedKey(TWClaim.getPlugin(), "surveillance"), PersistentDataType.INTEGER);
+        String activeUpgrades = container.get(new NamespacedKey(TWClaim.getPlugin(), "active-upgrades"), PersistentDataType.STRING);
+        if (surveillanceLevel == 0 || !activeUpgrades.contains("S")){return;}
+        // Check if player is member of tribe-owned bastion
+        UUID owner = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING));
+        if (Util.isTribe(owner) && Util.isInTribe(player.getUniqueId(), owner)){return;}
+        // Check if player is owner of private bastion
+        if (owner.equals(player.getUniqueId())){return;}
+        // Give player glowing effect
+        if (!bastion.getUnderSurveillance().contains(player.getUniqueId())){
+            ArrayList<UUID> underSurveillance = bastion.getUnderSurveillance();
+            underSurveillance.add(player.getUniqueId());
+            bastion.setUnderSurveillance(underSurveillance);
+        }
+        player.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 8, 0));
+    }
+
+    public static boolean hasFuel(Bastion bastion){
+        Block block = Bukkit.getWorld(bastion.getWorldId()).getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
+        PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
+        int fuel = container.get(new NamespacedKey(TWClaim.getPlugin(), "fuel"), PersistentDataType.INTEGER);
+        return fuel != 0;
     }
 }

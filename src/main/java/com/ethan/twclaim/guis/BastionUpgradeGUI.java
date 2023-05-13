@@ -1,10 +1,16 @@
 package com.ethan.twclaim.guis;
 
+import com.ethan.twclaim.TWClaim;
+import com.ethan.twclaim.data.Bastion;
 import com.ethan.twclaim.events.OpenGUI;
 import com.ethan.twclaim.util.Util;
+import com.jeff_media.customblockdata.CustomBlockData;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.block.Block;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -14,19 +20,34 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
-import java.util.Collections;
-import java.util.Objects;
+import java.util.*;
 
 public class BastionUpgradeGUI implements Listener {
     private Inventory gui;
+    final int antiFlight = 10;
+    final int antiTeleport = 11;
+    final int surveillance = 12;
+    final int range = 13;
+    final int expStorage = 14;
+
     public void openBastionGUI(Player player){
         gui = Bukkit.createInventory(null, 27, "Bastion Upgrades");
-        Util.generateGUI(gui, Material.ELYTRA, ChatColor.BLUE + "Anti-Flight", "Prevent non-members from using elytra", 10);
-        Util.generateGUI(gui, Material.ENDER_PEARL, ChatColor.GREEN + "Anti-Teleport", "Prevent non-members from teleporting", 11);
-        Util.generateGUI(gui, Material.GLOW_INK_SAC, ChatColor.BOLD + "Surveillance", "Non-members receive glowing effect", 12);
-        Util.generateGUI(gui, Material.BOW, ChatColor.LIGHT_PURPLE + "Range", "Increase Range of Bastion", 13);
-        Util.generateGUI(gui, Material.EXPERIENCE_BOTTLE, ChatColor.GREEN + "Experience Storage", "Deposit or withdraw experience", 14);
+        Block bastionBlock = Bastion.playerLastBastion.get(player.getUniqueId());
+        PersistentDataContainer container = new CustomBlockData(bastionBlock, TWClaim.getPlugin());
+        int antiTeleportLevel = container.get(new NamespacedKey(TWClaim.getPlugin(), "anti-teleport"), PersistentDataType.INTEGER);
+        int antiFlightLevel = container.get(new NamespacedKey(TWClaim.getPlugin(), "anti-flight"), PersistentDataType.INTEGER);
+        int surveillanceLevel = container.get(new NamespacedKey(TWClaim.getPlugin(), "surveillance"), PersistentDataType.INTEGER);
+        int rangeLevel = container.get(new NamespacedKey(TWClaim.getPlugin(), "range"), PersistentDataType.INTEGER);
+        int expStorageLevel = container.get(new NamespacedKey(TWClaim.getPlugin(), "exp-storage"), PersistentDataType.INTEGER);
+        container.get(new NamespacedKey(TWClaim.getPlugin(), "exp-amount"), PersistentDataType.INTEGER);
+        Util.generateGUI(gui, Material.ELYTRA, antiFlight, antiFlightLevel, "anti-flight", container);
+        Util.generateGUI(gui, Material.ENDER_PEARL, antiTeleport, antiTeleportLevel, "anti-teleport", container);
+        Util.generateGUI(gui, Material.GLOW_INK_SAC, surveillance, surveillanceLevel, "surveillance", container);
+        Util.generateGUI(gui, Material.BOW, range, rangeLevel, "range", container);
+        Util.generateGUI(gui, Material.EXPERIENCE_BOTTLE, expStorage, expStorageLevel, "exp-storage", container);
         Util.generateGUI(gui, Material.BARRIER, ChatColor.RED + "Back", "", 18);
 
         player.openInventory(gui);
@@ -47,14 +68,27 @@ public class BastionUpgradeGUI implements Listener {
                 return;
             }
         }catch (NullPointerException exception){return;}
-
         e.setCancelled(true);
 
+        Block bastionBlock = Bastion.playerLastBastion.get(player.getUniqueId());
+        PersistentDataContainer container = new CustomBlockData(bastionBlock, TWClaim.getPlugin());
+        // TODO add (active) and (inactive) to display strings when power is toggled
+        ArrayList<HashMap<String, Integer>> cost = new ArrayList<>();
         switch (e.getSlot()){
-            case 13:
-                // TODO If upgrade is not owned, check if player can pay the cost.
-                //  If so, remove cost from inventory and add power to Bastion PDC.
-                //  If upgrade is owned, click should toggle on/off, affecting power consumption.
+            case antiFlight:
+                clickUpgrade(container, ChatColor.BLUE + "Anti-Flight", "anti-flight", "F", player, antiFlight);
+                break;
+            case antiTeleport:
+                clickUpgrade(container, ChatColor.GREEN + "Anti-Teleport", "anti-teleport", "T", player, antiTeleport);
+                break;
+            case surveillance:
+                clickUpgrade(container, ChatColor.WHITE + "" + ChatColor.BOLD + "Surveillance", "surveillance", "S", player, surveillance);
+                break;
+            case range:
+                clickRange(container, "range", player, range);
+                break;
+            case expStorage:
+                clickUpgrade(container, ChatColor.GREEN + "Exp Storage", "exp-storage", "E", player, expStorage);
                 break;
             case 18:
                 Bukkit.getPluginManager().callEvent(new OpenGUI(player, "Bastion"));
@@ -70,5 +104,170 @@ public class BastionUpgradeGUI implements Listener {
             }
         }catch (NullPointerException ignored){return;}
         e.setCancelled(true);
+    }
+
+    public boolean processPurchase(Player player, HashMap<String, Integer> requiredAmounts){
+        // Check if cost can be paid
+        if (!checkCost(player.getInventory(), requiredAmounts)){
+            player.sendMessage(ChatColor.RED + "Can't afford upgrade");
+            return false;
+        }
+        // Iterate through required materials
+        for (String key : requiredAmounts.keySet()){
+            int requiredAmount = requiredAmounts.get(key);
+            // Iterate through inventory to pay cost
+            for (ItemStack item : player.getInventory().getContents()){
+                if (item == null){continue;}
+                String material = item.getType().toString();
+                if (!material.equalsIgnoreCase(key)){continue;}
+                int invAmount = item.getAmount();
+                // Remove materials from inventory
+                if (invAmount >= requiredAmount){
+                    item.setAmount(invAmount - requiredAmount);
+                    break;
+                } else{
+                    requiredAmount -= invAmount;
+                    item.setAmount(0);
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean checkCost(Inventory inventory, HashMap<String, Integer> requiredAmounts){
+        // Iterate through the required materials
+        for (String key : requiredAmounts.keySet()){
+            int costAmount = requiredAmounts.get(key);
+            // Iterate through inventory to pay cost
+            for (ItemStack item : inventory.getContents()){
+                if (item == null){continue;}
+                String material = item.getType().toString();
+                if (!material.equalsIgnoreCase(key)){continue;}
+                int invAmount = item.getAmount();
+                // Once cost is paid, move to next material
+                if (invAmount >= costAmount){
+                    costAmount = 0;
+                    break;
+                } else{
+                    costAmount -= invAmount;
+                }
+            }
+            // If a cost is unable to be paid, return false
+            if (costAmount != 0){return false;}
+        }
+        return true;
+    }
+
+    private void clickUpgrade(PersistentDataContainer container, String display, String upgrade, String upgradeKey, Player player, int place){
+        // If upgrade is bought, toggle the power
+        int level = container.get(new NamespacedKey(TWClaim.getPlugin(), upgrade), PersistentDataType.INTEGER);
+        ItemStack item =  gui.getItem(place);
+        ItemMeta itemMeta = item.getItemMeta();
+        if (level > 0){
+            NamespacedKey activeUpgradesKey = new NamespacedKey(TWClaim.getPlugin(), "active-upgrades");
+            String activeUpgrades = container.get(activeUpgradesKey, PersistentDataType.STRING);
+            // Check if upgrade is active
+            if (activeUpgrades.contains(upgradeKey)){
+                // Update upgrades string, GUI, and fuel consumption
+                activeUpgrades = activeUpgrades.replace(upgradeKey, "");
+                container.set(activeUpgradesKey, PersistentDataType.STRING, activeUpgrades);
+                NamespacedKey fuelConsumption = new NamespacedKey(TWClaim.getPlugin(), "fuel-consumption");
+                if (fuelConsumption != null && !upgrade.equalsIgnoreCase("surveillance")){
+                    container.set(fuelConsumption, PersistentDataType.INTEGER, container.get(fuelConsumption, PersistentDataType.INTEGER) - TWClaim.getPlugin().getConfig().getInt(upgrade + ".fuel"));
+                    itemMeta.setDisplayName(display + ChatColor.RED + " (Inactive)");
+                    itemMeta.removeEnchant(Enchantment.DURABILITY);
+                    item.setItemMeta(itemMeta);
+                    gui.setItem(place, item);
+                }
+                return;
+            }
+            activeUpgrades += upgradeKey;
+            container.set(activeUpgradesKey, PersistentDataType.STRING, activeUpgrades);
+            NamespacedKey fuelConsumption = new NamespacedKey(TWClaim.getPlugin(), "fuel-consumption");
+            // If there isn't a fuel cost in the config, this will probably bug
+            if (fuelConsumption != null && !upgrade.equalsIgnoreCase("surveillance")){
+                container.set(fuelConsumption, PersistentDataType.INTEGER, container.get(fuelConsumption, PersistentDataType.INTEGER) + TWClaim.getPlugin().getConfig().getInt(upgrade + ".fuel"));
+                itemMeta.addEnchant(Enchantment.DURABILITY, 1, false);
+                itemMeta.setDisplayName(display + ChatColor.GREEN + " (Active)");
+                item.setItemMeta(itemMeta);
+                gui.setItem(place, item);
+            }
+            return;
+        }
+        // Try to purchase upgrade
+        ArrayList<HashMap<String, Integer>> cost = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get(upgrade);
+        HashMap<String, Integer> requiredAmounts = new HashMap<>();
+        for (HashMap<String, Integer> hash : cost){
+            for(String key : hash.keySet()){
+                if (key.equalsIgnoreCase("fuel")){continue;}
+                int amount = hash.get(key);
+                if (requiredAmounts.containsKey(key)){
+                    requiredAmounts.put(key, requiredAmounts.get(key) + amount);
+                    continue;
+                }
+                requiredAmounts.put(key, amount);
+            }
+        }
+        if(!processPurchase(player, requiredAmounts)){return;}
+        // Mark upgrade as inactive
+        List<String> lore = new ArrayList<>();
+        lore.add("Level 1");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        gui.setItem(place, item);
+        // Add the upgrade to bastion PDC
+        NamespacedKey upgradeLevel = new NamespacedKey(TWClaim.getPlugin(), upgrade);
+        container.set(upgradeLevel, PersistentDataType.INTEGER, 1);
+    }
+
+    private void clickRange(PersistentDataContainer container, String upgrade, Player player, int place){
+        ArrayList<Integer> ranges = (ArrayList<Integer>) TWClaim.getPlugin().getConfig().get("bastion-ranges");
+        int maxLevel = ranges.size() - 1;
+        int level = container.get(new NamespacedKey(TWClaim.getPlugin(), upgrade), PersistentDataType.INTEGER);
+
+        // If power is at max level, do nothing
+        if (level >= maxLevel){return;}
+        // Try to purchase upgrade
+        int nextLevel = level + 1;
+        ArrayList<HashMap<String, Integer>> cost = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get("range.level-" + nextLevel);
+        HashMap<String, Integer> requiredAmounts = new HashMap<>();
+        for (HashMap<String, Integer> hash : cost){
+            for(String key : hash.keySet()){
+                if (key.equalsIgnoreCase("fuel")){continue;}
+                int amount = hash.get(key);
+                if (requiredAmounts.containsKey(key)){
+                    requiredAmounts.put(key, requiredAmounts.get(key) + amount);
+                    continue;
+                }
+                requiredAmounts.put(key, amount);
+            }
+        }
+        if(!processPurchase(player, requiredAmounts)){return;}
+        // Update the gui, PDC, and Bastion object if successful
+        UUID bastionId = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING));
+        Bastion bastion = Bastion.bastions.get(bastionId);
+        container.set(new NamespacedKey(TWClaim.getPlugin(), upgrade), PersistentDataType.INTEGER, nextLevel);
+        container.set(new NamespacedKey(TWClaim.getPlugin(), "range-distance"), PersistentDataType.INTEGER, ranges.get(nextLevel));
+        bastion.setRadius(ranges.get(nextLevel));
+        ItemStack item =  gui.getItem(place);
+        ItemMeta itemMeta = item.getItemMeta();
+        // If there is another level, show that level's costs
+        List<String> lore = new ArrayList<>();
+        String display = ChatColor.LIGHT_PURPLE + "Range " + "(" + nextLevel + "/" + maxLevel + ")";
+        itemMeta.setDisplayName(display);
+        lore.add("Increases range of bastion");
+        if (!(nextLevel >= maxLevel)){
+            lore.add(ChatColor.UNDERLINE + "Cost");
+            // Get cost from config
+            cost = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get("range.level-" + (nextLevel + 1));
+            for (HashMap<String, Integer> hash : cost){
+                for (String key : hash.keySet()){
+                    lore.add(hash.get(key) + " " + key);
+                }
+            }
+        }
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        gui.setItem(range, item);
     }
 }

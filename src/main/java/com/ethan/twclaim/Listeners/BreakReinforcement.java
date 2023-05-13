@@ -25,17 +25,28 @@ import java.util.UUID;
 public class BreakReinforcement implements Listener {
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e){
+        // TODO if block is bastion and being destroyed, trigger destroyBastion
+        // TODO if block is door and being destroyed, destroy both blocks
+        // TODO if block is door and not reinforced, look for reinforcement on other door block and subtract from there
         Player player = e.getPlayer();
         Block block = e.getBlock();
         // Get the block's persistent data container
-        final PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
+        PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
         NamespacedKey materialKey = new NamespacedKey(TWClaim.getPlugin(), "material");
         NamespacedKey key = new NamespacedKey(TWClaim.getPlugin(), "reinforcement");
         NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(), "owner");
         // Check that block is reinforced
         if (!container.has(key, PersistentDataType.INTEGER) || !container.has(ownKey, PersistentDataType.STRING)){
-            System.out.println("Not reinforced");
-            return;}
+            // If block is door, do an investigation
+            if (!SwitchEvent.DOOR.contains(block.getType())){return;}
+            if (SwitchEvent.getDoorHalf(block, block.getType())){
+                block = block.getWorld().getBlockAt(block.getX(), block.getY() - 1, block.getZ());
+            }else {
+                block = block.getWorld().getBlockAt(block.getX(), block.getY() + 1, block.getZ());
+            }
+            container = new CustomBlockData(block, TWClaim.getPlugin());
+            if (!container.has(key, PersistentDataType.INTEGER )|| !container.has(ownKey, PersistentDataType.STRING)){return;}
+        }
         // Check if player has permission to break the block. First, check if player is member of the tribe that owns
         // the block. Then, check if the player has "break" in their permission string.
         PlayerData playerData = PlayerData.player_data_hashmap.get(player.getUniqueId());

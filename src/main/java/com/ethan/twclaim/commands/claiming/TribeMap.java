@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class TribeMap {
+    // TODO the tribe map should be oriented the same direction the player is facing by default
     public static boolean tribeMap(Player player, TWClaim twClaim){
         // Getting location info
         int radius = TWClaim.getPlugin().getConfig().getInt("map-radius");

@@ -20,6 +20,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.io.File;
@@ -81,6 +82,7 @@ public final class TWClaim extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new BastionGUI(), this);
         Bukkit.getPluginManager().registerEvents(new BastionFuelGUI(), this);
         Bukkit.getPluginManager().registerEvents(new BastionUpgradeGUI(), this);
+        Bukkit.getPluginManager().registerEvents(new SwitchEvent(), this);
 
         // Plugin Commands
         getCommand("tribe").setExecutor(new TribeCommand(this));
@@ -96,6 +98,13 @@ public final class TWClaim extends JavaPlugin {
         // Load Tribes data from files
         TribeData tribe_hashmap = new TribeData();
         tribe_hashmap.loadTribes();
+
+        // Tasks
+        // Get input from config
+        int period = this.getConfig().getInt("base-consumption-period");
+        // Convert to minutes
+        period = period * 20 * 60;
+        BukkitTask fuelConsumption = new FuelConsumption().runTaskTimer(this, 0, period);
 
     }
 

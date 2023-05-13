@@ -7,7 +7,16 @@ reinforcements:
 bastion-fuel:
   - diamond: 10
 
-# The rate at which bastions consume fuel
+# The rate at which bastions consume fuel without any upgrades
+base-consumption: 10
+# The amount of time (minutes) between fuel consumptions
+base-consumption-period: 1
+
+# Range of Bastion per level
+bastion-ranges:
+- 30
+- 60
+- 90
 
 # Costs for bastion upgrades
 anti-flight:
@@ -19,8 +28,15 @@ anti-teleport:
   - fuel: 10
 
 range:
-  - diamond: 10
-  - fuel: 10
+  level-1:
+    - diamond: 10
+    - fuel: 10
+  level-2:
+    - diamond: 20
+    - fuel: 20
+  level-3:
+    - diamond: 30
+    - fuel: 30
 
 surveillance:
   - diamond: 10

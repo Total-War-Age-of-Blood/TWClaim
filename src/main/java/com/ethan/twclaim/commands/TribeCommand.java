@@ -124,6 +124,8 @@ public class TribeCommand implements CommandExecutor {
 
         // TODO change perms group perms
 
+        // TODO trust command to assign a certain member rank to anyone from a different tribe or to players by name
+
         return false;
     }
 }
