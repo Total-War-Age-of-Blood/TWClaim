@@ -32,6 +32,7 @@ public class BastionFuelGUI implements Listener {
 
     @EventHandler
     public void onPlayerClick(InventoryClickEvent e){
+        if (e.getClickedInventory() == null){return;}
         try{ if(!Objects.equals(e.getClickedInventory(), gui)){
             return;
         }}catch (NullPointerException exception){return;}

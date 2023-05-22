@@ -14,15 +14,21 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 public class BreakReinforcement implements Listener {
+    NamespacedKey materialKey = new NamespacedKey(TWClaim.getPlugin(), "material");
+    NamespacedKey key = new NamespacedKey(TWClaim.getPlugin(), "reinforcement");
+    NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(), "owner");
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e){
         // TODO if block is bastion and being destroyed, trigger destroyBastion
@@ -32,9 +38,6 @@ public class BreakReinforcement implements Listener {
         Block block = e.getBlock();
         // Get the block's persistent data container
         PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
-        NamespacedKey materialKey = new NamespacedKey(TWClaim.getPlugin(), "material");
-        NamespacedKey key = new NamespacedKey(TWClaim.getPlugin(), "reinforcement");
-        NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(), "owner");
         // Check that block is reinforced
         if (!container.has(key, PersistentDataType.INTEGER) || !container.has(ownKey, PersistentDataType.STRING)){
             // If block is door, do an investigation
@@ -73,45 +76,40 @@ public class BreakReinforcement implements Listener {
                             player.getWorld().dropItem(block.getLocation(), item);
                         }
                         // Remove reinforcement keys from block data
-                        Util.removeReinforcement(container, materialKey, key, ownKey);
+                        Util.removeReinforcement(container, materialKey, key, ownKey,e);
                         return;
                     }
                     // Remove reinforcement keys from block data
-                    Util.removeReinforcement(container, materialKey, key, ownKey);
+                    Util.removeReinforcement(container, materialKey, key, ownKey, e);
                 }
                 return;
             }
         } else if (player.getUniqueId().equals(owner)){
-            System.out.println("Private owner");
-            System.out.println(reinforcements);
             // Get material and reinforcement points from the config
             for (HashMap<String, Integer> hash : reinforcements){
                 for (String material : hash.keySet()){
-                    System.out.println(material);
-                    System.out.println(materialKey.getKey());
                     if (!(material.equalsIgnoreCase(container.get(materialKey, PersistentDataType.STRING)))){
                         continue;
                     }
                     // When we find the material, get its key and divide the block's current reinforcement
                     int configReinforcement = hash.get(material);
                     // If it is above the percentage, drop the material as well as the block
-                    System.out.println(reinforcement / configReinforcement * 100);
                     if (reinforcement / configReinforcement * 100 >= (int) TWClaim.getPlugin().getConfig().get("recover-min")){
                         ItemStack item = new ItemStack(Material.matchMaterial(material));
                         player.getWorld().dropItem(block.getLocation(), item);
                     }
                     // Remove reinforcement keys from block data
-                    Util.removeReinforcement(container, materialKey, key, ownKey);
+                    Util.removeReinforcement(container, materialKey, key, ownKey, e);
                     return;
                 }
             }
             // Remove reinforcement keys from block data
-            Util.removeReinforcement(container, materialKey, key, ownKey);
+            Util.removeReinforcement(container, materialKey, key, ownKey, e);
             return;
         }
         // If block is reinforced, cancel the event and lower reinforcement by 1.
         if (reinforcement - 1 <= 0){
-            Util.removeReinforcement(container, materialKey, key, ownKey);
+            Util.removeReinforcement(container, materialKey, key, ownKey, e);
             return;
         }
         e.setCancelled(true);
@@ -119,5 +117,39 @@ public class BreakReinforcement implements Listener {
         player.sendMessage("This block is reinforced");
         e.getPlayer().spawnParticle(Particle.ENCHANTMENT_TABLE, block.getLocation(), 20);
         e.getPlayer().playSound(block.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 2);
+    }
+
+    @EventHandler
+    public void onBlockExplode(BlockExplodeEvent e){
+        List<Block> blockList = e.blockList();
+        for (Block block : blockList){
+            PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
+            if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING)){continue;}
+            int reinforcement = container.get(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER);
+            int explosionDamage = TWClaim.getPlugin().getConfig().getInt("explosion-damage");
+            if (explosionDamage > reinforcement){
+                Util.removeReinforcement(container, materialKey, key, ownKey, e);
+                continue;
+            }
+            blockList.remove(block);
+            container.set(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER, reinforcement - explosionDamage);
+        }
+    }
+
+    @EventHandler
+    public void onEntityExplode(EntityExplodeEvent e){
+        List<Block> blockList = e.blockList();
+        for (Block block : blockList){
+            PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
+            if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING)){continue;}
+            int reinforcement = container.get(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER);
+            int explosionDamage = TWClaim.getPlugin().getConfig().getInt("explosion-damage");
+            if (explosionDamage > reinforcement){
+                Util.removeReinforcement(container, materialKey, key, ownKey, e);
+                continue;
+            }
+            blockList.remove(block);
+            container.set(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER, reinforcement - explosionDamage);
+        }
     }
 }

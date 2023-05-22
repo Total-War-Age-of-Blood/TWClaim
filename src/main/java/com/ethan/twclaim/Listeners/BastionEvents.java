@@ -8,12 +8,12 @@ import com.ethan.twclaim.util.Util;
 import com.jeff_media.customblockdata.CustomBlockData;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -26,7 +26,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.UUID;
 
 public class BastionEvents implements Listener {
@@ -44,7 +43,7 @@ public class BastionEvents implements Listener {
     @EventHandler
     public void bastionInteract(PlayerInteractEvent e){
         Block block = e.getClickedBlock();
-        if (block == null){return;}
+        if (block == null || !e.getAction().equals(Action.RIGHT_CLICK_BLOCK)){return;}
         final PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
         // Determine block is bastion
         if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){return;}
@@ -90,7 +89,9 @@ public class BastionEvents implements Listener {
         // Check if bastion has anti-teleport
         if (container.get(new NamespacedKey(TWClaim.getPlugin(), "anti-teleport"), PersistentDataType.INTEGER) == null){return;}
         if (container.get(new NamespacedKey(TWClaim.getPlugin(), "anti-teleport"), PersistentDataType.INTEGER) == 0){return;}
-        // TODO check if activeUpgrades has T
+        // Check if upgrade is active
+        String activeUpgrades = container.get(new NamespacedKey(TWClaim.getPlugin(), "active-upgrades"), PersistentDataType.STRING);
+        if (!activeUpgrades.contains("T")){return;}
         // Check if player is member of bastion
         UUID owner = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING));
         if (Util.isTribe(owner)){
@@ -151,6 +152,8 @@ public class BastionEvents implements Listener {
     @EventHandler
     public void onEnterSurveillance(PlayerMoveEvent e){
         Player player = e.getPlayer();
+        // Check if player is sneaking
+        if (player.isSneaking()){return;}
         if (Bastion.inBastionRange(player.getLocation()) == null){return;}
         // Check if bastion has surveillance
         Bastion bastion = Bastion.inBastionRange(player.getLocation());
@@ -179,6 +182,6 @@ public class BastionEvents implements Listener {
         Block block = Bukkit.getWorld(bastion.getWorldId()).getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
         PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
         int fuel = container.get(new NamespacedKey(TWClaim.getPlugin(), "fuel"), PersistentDataType.INTEGER);
-        return fuel != 0;
+        return fuel > 0;
     }
 }

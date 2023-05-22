@@ -60,6 +60,7 @@ public class BastionUpgradeGUI implements Listener {
 
     @EventHandler
     public void onPlayerClick(InventoryClickEvent e){
+        if (e.getClickedInventory() == null){return;}
         Player player = (Player) e.getWhoClicked();
         try{
             if(!Objects.equals(e.getClickedInventory(), gui)){
@@ -72,7 +73,6 @@ public class BastionUpgradeGUI implements Listener {
 
         Block bastionBlock = Bastion.playerLastBastion.get(player.getUniqueId());
         PersistentDataContainer container = new CustomBlockData(bastionBlock, TWClaim.getPlugin());
-        // TODO add (active) and (inactive) to display strings when power is toggled
         ArrayList<HashMap<String, Integer>> cost = new ArrayList<>();
         switch (e.getSlot()){
             case antiFlight:
@@ -166,32 +166,42 @@ public class BastionUpgradeGUI implements Listener {
         if (level > 0){
             NamespacedKey activeUpgradesKey = new NamespacedKey(TWClaim.getPlugin(), "active-upgrades");
             String activeUpgrades = container.get(activeUpgradesKey, PersistentDataType.STRING);
-            // Check if upgrade is active
+            // If upgrade is active
             if (activeUpgrades.contains(upgradeKey)){
                 // Update upgrades string, GUI, and fuel consumption
                 activeUpgrades = activeUpgrades.replace(upgradeKey, "");
                 container.set(activeUpgradesKey, PersistentDataType.STRING, activeUpgrades);
-                NamespacedKey fuelConsumption = new NamespacedKey(TWClaim.getPlugin(), "fuel-consumption");
-                if (fuelConsumption != null && !upgrade.equalsIgnoreCase("surveillance")){
-                    container.set(fuelConsumption, PersistentDataType.INTEGER, container.get(fuelConsumption, PersistentDataType.INTEGER) - TWClaim.getPlugin().getConfig().getInt(upgrade + ".fuel"));
-                    itemMeta.setDisplayName(display + ChatColor.RED + " (Inactive)");
-                    itemMeta.removeEnchant(Enchantment.DURABILITY);
-                    item.setItemMeta(itemMeta);
-                    gui.setItem(place, item);
+                NamespacedKey fuelConsumptionKey = new NamespacedKey(TWClaim.getPlugin(), "fuel-consumption");
+                // Get fuel consumption from config and subtract from PDC
+                ArrayList<HashMap<String, Integer>> cost = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get(upgrade);
+                for (HashMap<String, Integer> hash : cost){
+                    for (String key : hash.keySet()){
+                        if (!key.equalsIgnoreCase("fuel consumption when active")){continue;}
+                        container.set(fuelConsumptionKey, PersistentDataType.INTEGER, container.get(fuelConsumptionKey, PersistentDataType.INTEGER) - hash.get(key));
+                    }
                 }
-                return;
-            }
-            activeUpgrades += upgradeKey;
-            container.set(activeUpgradesKey, PersistentDataType.STRING, activeUpgrades);
-            NamespacedKey fuelConsumption = new NamespacedKey(TWClaim.getPlugin(), "fuel-consumption");
-            // If there isn't a fuel cost in the config, this will probably bug
-            if (fuelConsumption != null && !upgrade.equalsIgnoreCase("surveillance")){
-                container.set(fuelConsumption, PersistentDataType.INTEGER, container.get(fuelConsumption, PersistentDataType.INTEGER) + TWClaim.getPlugin().getConfig().getInt(upgrade + ".fuel"));
-                itemMeta.addEnchant(Enchantment.DURABILITY, 1, false);
-                itemMeta.setDisplayName(display + ChatColor.GREEN + " (Active)");
+                itemMeta.setDisplayName(display + ChatColor.RED + " (Inactive)");
+                itemMeta.removeEnchant(Enchantment.DURABILITY);
                 item.setItemMeta(itemMeta);
                 gui.setItem(place, item);
+                return;
             }
+            // If upgrade is inactive
+            activeUpgrades += upgradeKey;
+            container.set(activeUpgradesKey, PersistentDataType.STRING, activeUpgrades);
+            NamespacedKey fuelConsumptionKey = new NamespacedKey(TWClaim.getPlugin(), "fuel-consumption");
+            // Get fuel consumption from config and add to PDC
+            ArrayList<HashMap<String, Integer>> cost = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get(upgrade);
+            for (HashMap<String, Integer> hash : cost){
+                for (String key : hash.keySet()){
+                    if (!key.equalsIgnoreCase("fuel consumption when active")){continue;}
+                    container.set(fuelConsumptionKey, PersistentDataType.INTEGER, container.get(fuelConsumptionKey, PersistentDataType.INTEGER) + hash.get(key));
+                }
+            }
+            itemMeta.addEnchant(Enchantment.DURABILITY, 1, false);
+            itemMeta.setDisplayName(display + ChatColor.GREEN + " (Active)");
+            item.setItemMeta(itemMeta);
+            gui.setItem(place, item);
             return;
         }
         // Try to purchase upgrade
@@ -199,7 +209,7 @@ public class BastionUpgradeGUI implements Listener {
         HashMap<String, Integer> requiredAmounts = new HashMap<>();
         for (HashMap<String, Integer> hash : cost){
             for(String key : hash.keySet()){
-                if (key.equalsIgnoreCase("fuel")){continue;}
+                if (key.contains("fuel")){continue;}
                 int amount = hash.get(key);
                 if (requiredAmounts.containsKey(key)){
                     requiredAmounts.put(key, requiredAmounts.get(key) + amount);
@@ -211,7 +221,40 @@ public class BastionUpgradeGUI implements Listener {
         if(!processPurchase(player, requiredAmounts)){return;}
         // Mark upgrade as inactive
         List<String> lore = new ArrayList<>();
-        lore.add("Level 1");
+        lore.add(ChatColor.GREEN + "Level 1");
+        if (!upgrade.equalsIgnoreCase("range")) {
+            cost = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get(upgrade);
+            for (HashMap<String, Integer> hash : cost) {
+                for (String key : hash.keySet()) {
+                    if (!key.equalsIgnoreCase("fuel consumption when active")) {
+                        continue;
+                    }
+                    lore.add("Fuel Cost when active: " + hash.get(key));
+                }
+            }
+            if (upgrade.equalsIgnoreCase("surveillance")) {
+                cost = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get(upgrade);
+                for (HashMap<String, Integer> hash : cost) {
+                    for (String key : hash.keySet()) {
+                        if (!key.equalsIgnoreCase("fuel per person spied on")) {
+                            continue;
+                        }
+                        lore.add("Fuel Cost per person spotted: " + hash.get(key));
+                    }
+                }
+            }
+            if (upgrade.equalsIgnoreCase("exp-storage")) {
+                cost = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get(upgrade);
+                for (HashMap<String, Integer> hash : cost) {
+                    for (String key : hash.keySet()) {
+                        if (!key.equalsIgnoreCase("fuel per 100 points")) {
+                            continue;
+                        }
+                        lore.add("Fuel Cost per 100 exp: " + hash.get(key));
+                    }
+                }
+            }
+        }
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         gui.setItem(place, item);
@@ -231,9 +274,13 @@ public class BastionUpgradeGUI implements Listener {
         int nextLevel = level + 1;
         ArrayList<HashMap<String, Integer>> cost = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get("range.level-" + nextLevel);
         HashMap<String, Integer> requiredAmounts = new HashMap<>();
+        int additionalFuelConsumption = 0;
         for (HashMap<String, Integer> hash : cost){
             for(String key : hash.keySet()){
-                if (key.equalsIgnoreCase("fuel")){continue;}
+                if (key.contains("fuel")){
+                    additionalFuelConsumption += hash.get(key);
+                    continue;
+                }
                 int amount = hash.get(key);
                 if (requiredAmounts.containsKey(key)){
                     requiredAmounts.put(key, requiredAmounts.get(key) + amount);
@@ -248,6 +295,8 @@ public class BastionUpgradeGUI implements Listener {
         Bastion bastion = Bastion.bastions.get(bastionId);
         container.set(new NamespacedKey(TWClaim.getPlugin(), upgrade), PersistentDataType.INTEGER, nextLevel);
         container.set(new NamespacedKey(TWClaim.getPlugin(), "range-distance"), PersistentDataType.INTEGER, ranges.get(nextLevel));
+        int fuelConsumption = container.get(new NamespacedKey(TWClaim.getPlugin(), "fuel-consumption"), PersistentDataType.INTEGER);
+        container.set(new NamespacedKey(TWClaim.getPlugin(), "fuel-consumption"), PersistentDataType.INTEGER, fuelConsumption + additionalFuelConsumption);
         bastion.setRadius(ranges.get(nextLevel));
         ItemStack item =  gui.getItem(place);
         ItemMeta itemMeta = item.getItemMeta();

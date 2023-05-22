@@ -1,14 +1,20 @@
 package com.ethan.twclaim.util;
 
+import com.ethan.twclaim.Listeners.BastionEvents;
 import com.ethan.twclaim.TWClaim;
+import com.ethan.twclaim.data.Bastion;
 import com.ethan.twclaim.data.PlayerData;
 import com.ethan.twclaim.data.TribeData;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -31,12 +37,107 @@ public class Util {
         return !tribeFound;
     }
 
-    public static void removeReinforcement(PersistentDataContainer container, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey){
+    public static void removeReinforcement(PersistentDataContainer container, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey, BlockBreakEvent e){
+
+        // Remove PDCs from block
         container.remove(materialKey);
         container.remove(key);
         container.remove(ownKey);
+        if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){
+            return;
+        }
+        // Remove bastion from PDC
+        Bastion.bastions.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "bastion"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "fuel"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "fuel-consumption"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "anti-teleport"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "anti-flight"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "surveillance"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "range"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "exp-storage"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "exp-amount"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "range-distance"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "active-upgrades"));
+
+
+        // Make a proper bastion drop (the lore disappears when the player mines one normally.)
+        ItemStack bastion = bastionItem();
+        e.setDropItems(false);
+        e.getBlock().getWorld().dropItem(e.getBlock().getLocation(), bastion);
+
     }
 
+    public static void removeReinforcement(PersistentDataContainer container, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey, BlockExplodeEvent e){
+
+        // Remove PDCs from block
+        container.remove(materialKey);
+        container.remove(key);
+        container.remove(ownKey);
+        if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){
+            return;
+        }
+        UUID bastionID = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING));
+        Bastion bastion = Bastion.bastions.get(bastionID);
+        Block bastionBlock = Bukkit.getWorld(bastion.getWorldId()).getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
+        e.blockList().remove(bastionBlock);
+        bastionBlock.getDrops().clear();
+        e.blockList().add(bastionBlock);
+
+
+        // Remove bastion from PDC
+        Bastion.bastions.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "bastion"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "fuel"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "fuel-consumption"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "anti-teleport"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "anti-flight"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "surveillance"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "range"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "exp-storage"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "exp-amount"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "range-distance"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "active-upgrades"));
+
+
+        // Make a proper bastion drop (the lore disappears when the player mines one normally.)
+        ItemStack bastionItem = bastionItem();
+        e.getBlock().getWorld().dropItem(e.getBlock().getLocation(), bastionItem);
+    }
+
+    public static void removeReinforcement(PersistentDataContainer container, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey, EntityExplodeEvent e){
+
+        // Remove PDCs from block
+        container.remove(materialKey);
+        container.remove(key);
+        container.remove(ownKey);
+        if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){
+            return;
+        }
+        UUID bastionID = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING));
+        Bastion bastion = Bastion.bastions.get(bastionID);
+        Block bastionBlock = Bukkit.getWorld(bastion.getWorldId()).getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
+        bastionBlock.getDrops().clear();
+
+        // Remove bastion from PDC
+        Bastion.bastions.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "bastion"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "fuel"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "fuel-consumption"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "anti-teleport"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "anti-flight"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "surveillance"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "range"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "exp-storage"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "exp-amount"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "range-distance"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "active-upgrades"));
+
+
+        // Make a proper bastion drop (the lore disappears when the player mines one normally.)
+        ItemStack bastionItem = bastionItem();
+        e.getEntity().getWorld().dropItem(e.getEntity().getLocation(), bastionItem);
+    }
 
     public static boolean isTribe(UUID uuid){
         return TribeData.tribe_hashmap.containsKey(uuid);
@@ -84,13 +185,7 @@ public class Util {
         assert itemMeta != null;
         String display = "";
         List<String> lore = new ArrayList<>();
-        if (!upgrade.equalsIgnoreCase("range")){
-            if (level == 0){
-                lore.add(ChatColor.RED + "Not owned");
-            } else{
-                lore.add(ChatColor.GREEN + "Level: " + level);
-            }
-        }
+
         ArrayList<HashMap<String, Integer>> cost;
         String activeUpgrades = container.get(new NamespacedKey(TWClaim.getPlugin(), "active-upgrades"), PersistentDataType.STRING);
         switch (upgrade){
@@ -184,10 +279,52 @@ public class Util {
                 }
                 break;
         }
+        if (!upgrade.equalsIgnoreCase("range")){
+            if (level == 0){
+                lore.add(ChatColor.RED + "Not owned");
+            } else{
+                lore.add(ChatColor.GREEN + "Level: " + level);
+                cost = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get(upgrade);
+                for (HashMap<String, Integer> hash : cost){
+                    for (String key : hash.keySet()){
+                        if (!key.equalsIgnoreCase("fuel consumption when active")){continue;}
+                        lore.add("Fuel Cost when active: " + hash.get(key));
+                    }
+                }
+            }
+            if (upgrade.equalsIgnoreCase("surveillance")){
+                cost = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get(upgrade);
+                for (HashMap<String, Integer> hash : cost){
+                    for (String key : hash.keySet()){
+                        if (!key.equalsIgnoreCase("fuel per person spied on")){continue;}
+                        lore.add("Fuel Cost per person spotted: " + hash.get(key));
+                    }
+                }
+            }
+            if (upgrade.equalsIgnoreCase("exp-storage")){
+                cost = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get(upgrade);
+                for (HashMap<String, Integer> hash : cost){
+                    for (String key : hash.keySet()){
+                        if (!key.equalsIgnoreCase("fuel per 100 points")){continue;}
+                        lore.add("Fuel Cost per 100 exp: " + hash.get(key));
+                    }
+                }
+            }
+        }
         itemMeta.setDisplayName(display);
         itemMeta.setLore(lore);
         itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         item.setItemMeta(itemMeta);
         gui.setItem(place, item);
+    }
+
+    public static ItemStack bastionItem(){
+        ItemStack bastion = new ItemStack(Material.BEACON);
+        ItemMeta bastionMeta = bastion.getItemMeta();
+        bastionMeta.setDisplayName(ChatColor.GOLD + "Bastion");
+        bastionMeta.setLore(Arrays.asList(ChatColor.GOLD + "Protects your land in a 30 block radius"));
+        bastionMeta.getPersistentDataContainer().set(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING, "yes");
+        bastion.setItemMeta(bastionMeta);
+        return bastion;
     }
 }

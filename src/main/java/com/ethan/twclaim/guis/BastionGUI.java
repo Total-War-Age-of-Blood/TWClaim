@@ -1,5 +1,6 @@
 package com.ethan.twclaim.guis;
 
+import com.ethan.twclaim.Listeners.BastionEvents;
 import com.ethan.twclaim.TWClaim;
 import com.ethan.twclaim.data.Bastion;
 import com.ethan.twclaim.events.OpenGUI;
@@ -25,22 +26,22 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Collections;
 import java.util.Objects;
+import java.util.UUID;
 
 public class BastionGUI implements Listener {
     private Inventory gui;
-    // TODO Upgrades should increase the power consumption when active
-    // TODO alter EventHandlers to make them dependent on upgrades
     public void openBastionGUI(Player player){
         gui = Bukkit.createInventory(null, 27, "Bastion");
-        Block bastion = Bastion.playerLastBastion.get(player.getUniqueId());
-        PersistentDataContainer container = new CustomBlockData(bastion, TWClaim.getPlugin());
+        Block bastionBlock = Bastion.playerLastBastion.get(player.getUniqueId());
+        PersistentDataContainer container = new CustomBlockData(bastionBlock, TWClaim.getPlugin());
+        Bastion bastion = Bastion.bastions.get(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)));
         if (container.get(new NamespacedKey(TWClaim.getPlugin(), "fuel"), PersistentDataType.INTEGER) == null){return;}
         int fuel = container.get(new NamespacedKey(TWClaim.getPlugin(), "fuel"), PersistentDataType.INTEGER);
         int fuelConsumption = container.get(new NamespacedKey(TWClaim.getPlugin(), "fuel-consumption"), PersistentDataType.INTEGER);
         Util.generateGUI(gui, Material.COAL, ChatColor.GOLD + "Deposit Fuel", "Current Fuel: " + fuel + "\n" + "Consumption: " + fuelConsumption, 12);
         Util.generateGUI(gui, Material.GOLD_INGOT, ChatColor.RED + "Upgrades", "Upgrade Bastion", 14);
         String activeUpgrades = container.get(new NamespacedKey(TWClaim.getPlugin(), "active-upgrades"), PersistentDataType.STRING);
-        if (activeUpgrades.contains("E")){
+        if (activeUpgrades.contains("E") && BastionEvents.hasFuel(bastion)){
             int exp = container.get(new NamespacedKey(TWClaim.getPlugin(), "exp-amount"), PersistentDataType.INTEGER);
             Util.generateGUI(gui, Material.EXPERIENCE_BOTTLE, ChatColor.GREEN + "Exp. Storage", "Exp: " + exp + "\nLeft Click to deposit\nRight click to withdraw", 15);
         }
@@ -54,6 +55,7 @@ public class BastionGUI implements Listener {
 
     @EventHandler
     public void onPlayerClick(InventoryClickEvent e){
+        if (e.getClickedInventory() == null){return;}
         Player player = (Player) e.getWhoClicked();
         try{
             if(!Objects.equals(e.getClickedInventory(), gui)){
@@ -75,7 +77,9 @@ public class BastionGUI implements Listener {
             case 15:
                 Block bastionBlock = Bastion.playerLastBastion.get(player.getUniqueId());
                 PersistentDataContainer container = new CustomBlockData(bastionBlock, TWClaim.getPlugin());
+                Bastion bastion = Bastion.bastions.get(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)));
                 if (!container.get(new NamespacedKey(TWClaim.getPlugin(), "active-upgrades"), PersistentDataType.STRING).contains("E")){return;}
+                if (!BastionEvents.hasFuel(bastion)){return;}
                 ItemStack item = gui.getItem(15);
                 ItemMeta itemMeta = item.getItemMeta();
                 // Deposit/Withdraw 1 level on left/right, all levels on shift + left/right

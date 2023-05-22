@@ -10,12 +10,12 @@ public class ClaimMode {
     // TODO store info for other arguments such as not claiming air blocks
     public static boolean claimTribe(Player player, String[] args, PlayerData playerData){
         // Check if tribe exists
-        if (!TribeData.tribeConversionHashmap.containsKey(args[0])){
+        if (!TribeData.tribeConversionHashmap.containsKey(args[1].toLowerCase())){
             player.sendMessage(ChatColor.RED + "This tribe does not exist!");
             return false;
         }
         // Check if player is in tribe
-        if (!Util.isInTribe(player.getUniqueId(), TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(args[0].toLowerCase())).getTribeID())){
+        if (!Util.isInTribe(player.getUniqueId(), TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(args[1].toLowerCase())).getTribeID())){
             player.sendMessage(ChatColor.RED + "Not a member of this tribe!");
             return false;
         }

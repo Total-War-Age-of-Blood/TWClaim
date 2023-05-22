@@ -1,6 +1,7 @@
 package com.ethan.twclaim;
 
 import com.ethan.twclaim.Listeners.*;
+import com.ethan.twclaim.commands.TabComplete;
 import com.ethan.twclaim.commands.TribeCommand;
 import com.ethan.twclaim.data.Bastion;
 import com.ethan.twclaim.data.PlayerData;
@@ -8,6 +9,7 @@ import com.ethan.twclaim.data.TribeData;
 import com.ethan.twclaim.guis.BastionFuelGUI;
 import com.ethan.twclaim.guis.BastionGUI;
 import com.ethan.twclaim.guis.BastionUpgradeGUI;
+import com.ethan.twclaim.util.Util;
 import com.google.gson.Gson;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
@@ -58,13 +60,7 @@ public final class TWClaim extends JavaPlugin {
         saveDefaultConfig();
 
         // Crafting Recipes
-        ItemStack bastion = new ItemStack(Material.BEACON);
-        ItemMeta bastionMeta = bastion.getItemMeta();
-        bastionMeta.setDisplayName(ChatColor.GOLD + "Bastion");
-        bastionMeta.setLore(Arrays.asList(ChatColor.GOLD + "Protects your land in a 30 block radius"));
-        bastionMeta.getPersistentDataContainer().set(new NamespacedKey(this, "bastion"), PersistentDataType.STRING, "yes");
-        bastion.setItemMeta(bastionMeta);
-
+        ItemStack bastion = Util.bastionItem();
         ShapedRecipe bastionRecipe = new ShapedRecipe(new NamespacedKey(this, "bastion"), bastion);
         bastionRecipe.shape("AAA", "AEA", "AAA");
         bastionRecipe.setIngredient('E', Material.END_CRYSTAL);
@@ -86,6 +82,7 @@ public final class TWClaim extends JavaPlugin {
 
         // Plugin Commands
         getCommand("tribe").setExecutor(new TribeCommand(this));
+        getCommand("tribe").setTabCompleter(new TabComplete());
 
         // Check to see if the necessary directories already exist.
         File player_data_folder = new File(getDataFolder(), "PlayerData");

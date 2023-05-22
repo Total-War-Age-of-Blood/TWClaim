@@ -15,7 +15,7 @@ import java.util.UUID;
 public class TribeInfo {
     public static boolean tribeInfo(Player player, String[] args){
         // Check if tribe exists
-        if (!TribeData.tribeConversionHashmap.containsKey(args[0])){
+        if (!TribeData.tribeConversionHashmap.containsKey(args[1])){
             player.sendMessage(ChatColor.RED + "This tribe does not exist!");
             return false;
         }
@@ -23,13 +23,19 @@ public class TribeInfo {
         TribeData tribe = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(args[1].toLowerCase()));
         List<String> message = new ArrayList<>();
         if (!Util.isInTribe(player.getUniqueId(), tribe.getTribeID())){
-            message.add("Owner: " + Bukkit.getOfflinePlayer(player.getUniqueId()));
+            message.add("Owner: " + tribe.getLeaderDisplay());
             HashMap<UUID, String> members = tribe.getMembers();
             members.remove(tribe.getLeader());
-            message.add("Members: " + members.values());
+            StringBuilder membersString = new StringBuilder("Members: ");
+            for (UUID member : members.keySet()){
+                OfflinePlayer memberPlayer = Bukkit.getPlayer(member);
+                membersString.append(members.get(member)).append(memberPlayer.getName()).append(", ");
+            }
+            message.add(membersString.toString());
+            player.sendMessage(String.join("\n", message));
             return true;
         }
-        message.add("Owner: " + Bukkit.getOfflinePlayer(player.getUniqueId()));
+        message.add("Owner: " + tribe.getLeaderDisplay());
         HashMap<UUID, String> members = tribe.getMembers();
         members.remove(tribe.getLeader());
         StringBuilder membersString = new StringBuilder("Members: ");
@@ -38,6 +44,7 @@ public class TribeInfo {
             membersString.append(members.get(member)).append(memberPlayer.getName()).append(", ");
         }
         message.add(membersString.toString());
+        player.sendMessage(String.join("\n", message));
         return true;
     }
 }

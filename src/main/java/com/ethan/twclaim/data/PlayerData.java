@@ -94,7 +94,7 @@ public class PlayerData implements Listener {
     List<String> invites;
     String display;
     UUID uuid;
-    HashMap<String, Block> claimSelect = new HashMap<>();
+    HashMap<String, Integer[]> claimSelect = new HashMap<>();
     String mode;
     UUID target;
 
@@ -104,7 +104,7 @@ public class PlayerData implements Listener {
     }
 
     public PlayerData(HashMap<UUID, String> tribes, List<String> invites, String display, UUID uuid,
-                      HashMap<String, Block> claimSelect, String mode) {
+                      HashMap<String, Integer[]> claimSelect, String mode) {
         this.tribes = tribes;
         this.invites = invites;
         this.display = display;
@@ -145,11 +145,11 @@ public class PlayerData implements Listener {
         this.invites = invites;
     }
 
-    public HashMap<String, Block> getClaimSelect() {
+    public HashMap<String, Integer[]> getClaimSelect() {
         return claimSelect;
     }
 
-    public void setClaimSelect(HashMap<String, Block> claimSelect) {
+    public void setClaimSelect(HashMap<String, Integer[]> claimSelect) {
         this.claimSelect = claimSelect;
     }
 

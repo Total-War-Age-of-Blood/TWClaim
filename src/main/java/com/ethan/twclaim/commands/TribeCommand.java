@@ -42,15 +42,15 @@ public class TribeCommand implements CommandExecutor {
 
         // TODO make tribe list paginated if it becomes too long
         if (args.length == 1 && args[0].equalsIgnoreCase("list")){
-            TextComponent textComponent = Component.text("");
-            textComponent = textComponent.append(Component.text("Your Tribes", NamedTextColor.GOLD, TextDecoration.UNDERLINED));
+            TextComponent textComponent = Component.text("Your Tribes \n", NamedTextColor.GOLD, TextDecoration.UNDERLINED);
             for (String tribe : playerData.getTribes().values()){
-                textComponent = textComponent.append(Component.text(tribe));
+                textComponent = textComponent.append(Component.text(tribe + "\n", NamedTextColor.WHITE).decoration(TextDecoration.UNDERLINED, false));
             }
+            twClaim.adventure().player(player).sendMessage(textComponent);
             return true;
         }
 
-        if (args.length == 3 && args[1].equalsIgnoreCase("add")){
+        if (args.length == 3 && args[0].equalsIgnoreCase("add")){
             return AddMember.addMember(player, args, gson);
         }
 
@@ -78,7 +78,7 @@ public class TribeCommand implements CommandExecutor {
            return ReinforceMode.reinforcePrivate(player, playerData);
         }
 
-        if (args.length == 2 && args[1].equalsIgnoreCase("reinforce")){
+        if (args.length == 2 && args[0].equalsIgnoreCase("reinforce")){
             return ReinforceMode.reinforceTribe(player, args, playerData);
         }
 
@@ -86,7 +86,7 @@ public class TribeCommand implements CommandExecutor {
             return FortifyMode.fortifyPrivate(player, playerData);
         }
 
-        if (args.length == 2 && args[1].equalsIgnoreCase("fortify")){
+        if (args.length == 2 && args[0].equalsIgnoreCase("fortify")){
             return FortifyMode.fortifyTribe(player, args, playerData);
         }
 
@@ -94,15 +94,19 @@ public class TribeCommand implements CommandExecutor {
             return ClaimMode.claimPrivate(player, playerData);
         }
 
-        if (args.length == 2 && args[1].equalsIgnoreCase("claim")){
+        if (args.length == 2 && args[0].equalsIgnoreCase("claim")){
             return ClaimMode.claimTribe(player, args, playerData);
         }
 
         if (args.length == 2 && args[0].equalsIgnoreCase("claim") && args[1].equalsIgnoreCase("confirm")){
-            return ClaimConfirm.claimConfirm(player, playerData);
+            return ClaimConfirm.claimConfirm(player, playerData, twClaim, args);
         }
 
-        if (args.length == 2 && args[1].equalsIgnoreCase("info")) {
+        if (args.length == 3 && args[0].equalsIgnoreCase("claim") && args[1].equalsIgnoreCase("confirm") && args[2].equalsIgnoreCase("multiple")){
+            return ClaimConfirm.claimConfirm(player, playerData, twClaim, args);
+        }
+
+        if (args.length == 2 && args[0].equalsIgnoreCase("info")) {
             return TribeInfo.tribeInfo(player, args);
         }
 
@@ -115,9 +119,14 @@ public class TribeCommand implements CommandExecutor {
             return TribeMap.tribeMap(player, twClaim);
         }
 
-        if (args.length == 1 && args[0].equalsIgnoreCase("chunk")){
-            Set<NamespacedKey> container = player.getWorld().getChunkAt(player.getLocation()).getPersistentDataContainer().getKeys();
-            player.sendMessage(container.toString());
+        if (args.length == 2 && args[0].equalsIgnoreCase("leave")){
+            LeaveTribe.leaveTribe(player, args);
+            return true;
+        }
+
+        if (args.length == 2 && args[0].equalsIgnoreCase("disband")){
+            DisbandTribe.disbandTribe(player, args);
+            return true;
         }
 
         // TODO create perms group

@@ -29,7 +29,7 @@ public class CreateTribe {
         HashMap<String, String> perms = new HashMap<>();
         perms.put("Leader", "kirsb");
         perms.put("Member", "--rs-");
-        TribeData tribe = new TribeData(tribeID, args[1], player.getUniqueId(), members, perms, new ArrayList<>());
+        TribeData tribe = new TribeData(tribeID, args[1], player.getUniqueId(), members, perms, new ArrayList<>(), player.getDisplayName());
         // TODO see if the file saving can be removed
         //  since the hashmap should be saved to file when the server stops
         File tribe_file = new File(tribeFolder, tribeID + ".json");

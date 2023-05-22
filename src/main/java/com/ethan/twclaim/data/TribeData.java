@@ -26,8 +26,6 @@ public class TribeData {
                 tribeConversionHashmap.put(tribe_data.getName().toLowerCase(), tribe_data.getTribeID());
             }catch (IOException exception){exception.printStackTrace();}
         }
-        System.out.println(tribe_hashmap);
-        System.out.println(tribeConversionHashmap);
     }
 
     public void saveTribes(){
@@ -46,6 +44,7 @@ public class TribeData {
     UUID tribeID;
     String name;
     UUID leader;
+    String leaderDisplay;
     // A list of tribe members. The String value is their perms group.
     HashMap<UUID, String> members;
     // The first String is the name of the perms group within the tribe. The second string will be the code for which
@@ -54,13 +53,14 @@ public class TribeData {
     HashMap<String, String> permGroups;
     List<UUID> invites;
 
-    public TribeData(UUID tribeID, String name, UUID leader, HashMap<UUID, String> members, HashMap<String, String> permGroups, List<UUID> invites) {
+    public TribeData(UUID tribeID, String name, UUID leader, HashMap<UUID, String> members, HashMap<String, String> permGroups, List<UUID> invites, String leaderDisplay) {
         this.tribeID = tribeID;
         this.name = name;
         this.leader = leader;
         this.members = members;
         this.permGroups = permGroups;
         this.invites = invites;
+        this.leaderDisplay = leaderDisplay;
     }
 
     public UUID getTribeID() {
@@ -109,5 +109,13 @@ public class TribeData {
 
     public void setInvites(List<UUID> invites) {
         this.invites = invites;
+    }
+
+    public String getLeaderDisplay() {
+        return leaderDisplay;
+    }
+
+    public void setLeaderDisplay(String leaderDisplay) {
+        this.leaderDisplay = leaderDisplay;
     }
 }

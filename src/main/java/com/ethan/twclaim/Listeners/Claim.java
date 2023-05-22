@@ -20,15 +20,16 @@ public class Claim implements Listener {
         Player player = e.getPlayer();
         PlayerData playerData = PlayerData.player_data_hashmap.get(player.getUniqueId());
         if (!playerData.getMode().equals("Claim")){return;}
-        HashMap<String, Block> claimSelect = playerData.getClaimSelect();
+        HashMap<String, Integer[]> claimSelect = playerData.getClaimSelect();
         Block block = e.getClickedBlock();
+        Integer[] blockCoordinates = {block.getX(), block.getY(), block.getZ()};
         // Set first block if left click and second if right click
         if (e.getAction().equals(Action.LEFT_CLICK_BLOCK)){
-            claimSelect.put("First", block);
+            claimSelect.put("First", blockCoordinates);
             player.sendMessage("First block selected: (" + block.getX() + ", " + block.getY() + ", " + block.getZ() + ")" + "\n"
                     + "Type /tribe claim confirm to confirm");
         } else if (e.getHand().equals(EquipmentSlot.OFF_HAND)) {
-            claimSelect.put("Second", block);
+            claimSelect.put("Second", blockCoordinates);
             player.sendMessage("Second block selected: (" + block.getX() + ", " + block.getY() + ", " + block.getZ() + ")" + "\n"
                     + "Type /tribe claim confirm to confirm");
         }
