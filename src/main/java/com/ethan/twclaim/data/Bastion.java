@@ -98,8 +98,6 @@ public class Bastion implements Listener {
         bastions.put(uuid, bastion);
     }
 
-    // TODO create destroyBastion
-
     public static Bastion inBastionRange(Location location){
         if (bastions == null || bastions.isEmpty()){return null;}
         for (Bastion bastion : bastions.values()){

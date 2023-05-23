@@ -16,7 +16,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.io.*;
-import java.util.Set;
 
 public class TribeCommand implements CommandExecutor {
     private final TWClaim twClaim;
@@ -94,12 +93,12 @@ public class TribeCommand implements CommandExecutor {
             return ClaimMode.claimPrivate(player, playerData);
         }
 
-        if (args.length == 2 && args[0].equalsIgnoreCase("claim")){
-            return ClaimMode.claimTribe(player, args, playerData);
-        }
-
         if (args.length == 2 && args[0].equalsIgnoreCase("claim") && args[1].equalsIgnoreCase("confirm")){
             return ClaimConfirm.claimConfirm(player, playerData, twClaim, args);
+        }
+
+        if (args.length == 2 && args[0].equalsIgnoreCase("claim")){
+            return ClaimMode.claimTribe(player, args, playerData);
         }
 
         if (args.length == 3 && args[0].equalsIgnoreCase("claim") && args[1].equalsIgnoreCase("confirm") && args[2].equalsIgnoreCase("multiple")){
@@ -130,7 +129,20 @@ public class TribeCommand implements CommandExecutor {
         }
 
         // TODO create perms group
+        if (args[0].equalsIgnoreCase("perms")){
+            if (args[1].equalsIgnoreCase("create")){
 
+            }
+            if (args[1].equalsIgnoreCase("delete")){
+
+            }
+            if (args[1].equalsIgnoreCase("edit")){
+
+            }
+            if (args[1].equalsIgnoreCase("promote") || args[1].equalsIgnoreCase("demote")){
+
+            }
+        }
         // TODO change perms group perms
 
         // TODO trust command to assign a certain member rank to anyone from a different tribe or to players by name

@@ -10,7 +10,7 @@ public class ReinforceMode {
     // TODO prevent reinforce if in bastion without permission
     public static boolean reinforceTribe(Player player, String[] args, PlayerData playerData){
         // Search for tribe in tribe hashmap return error if not found
-        if (Util.checkTribe(args[0])){player.sendMessage(ChatColor.RED + "This tribe does not exist!"); return false;}
+        if (Util.checkTribe(args[1].toLowerCase())){player.sendMessage(ChatColor.RED + "This tribe does not exist!"); return false;}
         TribeData tribe = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(args[1].toLowerCase()));
         // Check for permission to reinforce blocks
         String permGroup = tribe.getMembers().get(player.getUniqueId());

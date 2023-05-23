@@ -23,7 +23,6 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.*;
 
 public class ClaimConfirm {
-    // TODO prevent claim if in bastion without permission
     public static boolean claimConfirm(Player player, PlayerData playerData, TWClaim twClaim, String[] args){
         // Check that player is in claim mode
         if (!playerData.getMode().equalsIgnoreCase("Claim")){

@@ -13,7 +13,7 @@ public class LeaveTribe {
             player.sendMessage(ChatColor.RED + "Tribe does not exist");
             return;
         }
-        TribeData tribeData = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(args[0].toLowerCase()));
+        TribeData tribeData = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(args[1].toLowerCase()));
         // Check that player is in the tribe
         if (!Util.isInTribe(player.getUniqueId(), tribeData.getTribeID())){
             player.sendMessage(ChatColor.RED + "You are not a member of this tribe");

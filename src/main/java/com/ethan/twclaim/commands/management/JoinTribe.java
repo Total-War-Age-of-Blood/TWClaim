@@ -8,11 +8,12 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 public class JoinTribe {
     public static boolean joinTribe(Player player, String[] args, PlayerData playerData){
-        if (Util.checkTribe(args[1])){player.sendMessage(ChatColor.RED + "This tribe does not exist!"); return false;}
+        if (Util.checkTribe(args[1].toLowerCase())){player.sendMessage(ChatColor.RED + "This tribe does not exist!"); return false;}
         TribeData tribe = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(args[1].toLowerCase()));
         // Check that tribe invited player
         if (!tribe.getInvites().contains(player.getUniqueId())){player.sendMessage(ChatColor.RED + "You do not have permission to join this tribe"); return false;}

@@ -49,7 +49,7 @@ public class TribeData {
     HashMap<UUID, String> members;
     // The first String is the name of the perms group within the tribe. The second string will be the code for which
     // perms that group has access to. Ex: "--aob-".
-    // Current perms: kick-k invite-i reinforce-r switch-s bastion-b
+    // Current perms: kick-k invite-i reinforce-r switch-s bastion-b perms-p
     HashMap<String, String> permGroups;
     List<UUID> invites;
 

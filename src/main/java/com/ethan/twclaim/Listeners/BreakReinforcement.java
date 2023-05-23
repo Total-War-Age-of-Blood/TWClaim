@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
+import static com.ethan.twclaim.util.Util.bastionItem;
+
 public class BreakReinforcement implements Listener {
     NamespacedKey materialKey = new NamespacedKey(TWClaim.getPlugin(), "material");
     NamespacedKey key = new NamespacedKey(TWClaim.getPlugin(), "reinforcement");
@@ -124,7 +126,14 @@ public class BreakReinforcement implements Listener {
         List<Block> blockList = e.blockList();
         for (Block block : blockList){
             PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
-            if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING)){continue;}
+            if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING) && !container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){continue;}
+            if (container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING) && !container.has(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING)){
+                blockList.remove(block);
+                block.setType(Material.AIR);
+                blockList.add(block);
+                ItemStack bastionItem = bastionItem();
+                e.getBlock().getWorld().dropItem(e.getBlock().getLocation(), bastionItem);
+            }
             int reinforcement = container.get(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER);
             int explosionDamage = TWClaim.getPlugin().getConfig().getInt("explosion-damage");
             if (explosionDamage > reinforcement){
@@ -141,7 +150,14 @@ public class BreakReinforcement implements Listener {
         List<Block> blockList = e.blockList();
         for (Block block : blockList){
             PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
-            if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING)){continue;}
+            if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING) && !container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){continue;}
+            if (container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING) && !container.has(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING)){
+                blockList.remove(block);
+                block.setType(Material.AIR);
+                blockList.add(block);
+                ItemStack bastionItem = bastionItem();
+                e.getEntity().getWorld().dropItem(e.getEntity().getLocation(), bastionItem);
+            }
             int reinforcement = container.get(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER);
             int explosionDamage = TWClaim.getPlugin().getConfig().getInt("explosion-damage");
             if (explosionDamage > reinforcement){

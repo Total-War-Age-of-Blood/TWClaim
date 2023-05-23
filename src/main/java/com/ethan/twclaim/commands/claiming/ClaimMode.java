@@ -20,7 +20,7 @@ public class ClaimMode {
             return false;
         }
         // Check player perms
-        TribeData tribeData = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(args[0].toLowerCase()));
+        TribeData tribeData = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(args[1].toLowerCase()));
         if (!tribeData.getPermGroups().get(tribeData.getMembers().get(player.getUniqueId())).contains("r")){
             player.sendMessage(ChatColor.RED + "Insufficient Permissions");
         }
