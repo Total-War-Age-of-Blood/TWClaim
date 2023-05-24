@@ -16,8 +16,9 @@ import java.util.UUID;
 
 public class CreateTribe {
     public static boolean createTribe(Player player, String[] args, File tribeFolder, Gson gson, PlayerData playerData){
+        String tribeName = args[1];
         for (TribeData tribeData : TribeData.tribe_hashmap.values()){
-            if (!tribeData.getName().equalsIgnoreCase(args[1])){continue;}
+            if (!tribeData.getName().equalsIgnoreCase(tribeName)){continue;}
             player.sendMessage(ChatColor.RED + "A tribe with this name already exists!");
             return false;
         }
@@ -29,7 +30,7 @@ public class CreateTribe {
         HashMap<String, String> perms = new HashMap<>();
         perms.put("Leader", "kirsbp");
         perms.put("Member", "rs");
-        TribeData tribe = new TribeData(tribeID, args[1], player.getUniqueId(), members, perms, new ArrayList<>(), player.getDisplayName());
+        TribeData tribe = new TribeData(tribeID, args[1], player.getUniqueId(), new HashMap<>(), members, perms, new ArrayList<>(), player.getDisplayName());
         // TODO see if the file saving can be removed
         //  since the hashmap should be saved to file when the server stops
         File tribe_file = new File(tribeFolder, tribeID + ".json");

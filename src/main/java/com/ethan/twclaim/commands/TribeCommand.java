@@ -131,16 +131,16 @@ public class TribeCommand implements CommandExecutor {
         // TODO create perms group
         if (args[0].equalsIgnoreCase("perms")){
             if (args[1].equalsIgnoreCase("create")){
-
+                Perms.createPerms(player, args);
             }
             if (args[1].equalsIgnoreCase("delete")){
-
+                Perms.deletePerms(player, args);
             }
             if (args[1].equalsIgnoreCase("edit")){
-
+                Perms.editPerms(player, args);
             }
             if (args[1].equalsIgnoreCase("promote") || args[1].equalsIgnoreCase("demote")){
-
+                Perms.promoteDemote(player, args);
             }
         }
         // TODO change perms group perms

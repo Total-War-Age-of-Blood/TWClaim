@@ -16,22 +16,24 @@ import java.util.UUID;
 public class AddMember {
     public static boolean addMember(Player player, String[] args, Gson gson){
 // Search for tribe in tribe hashmap return error if not found
-        if (Util.checkTribe(args[2].toLowerCase())){player.sendMessage(ChatColor.RED + "This tribe does not exist!"); return false;}
-        TribeData tribe = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(args[2].toLowerCase()));
+        String playerName = args[1];
+        String tribeName = args[2];
+        if (Util.checkTribe(tribeName.toLowerCase())){player.sendMessage(ChatColor.RED + "This tribe does not exist!"); return false;}
+        TribeData tribe = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(tribeName.toLowerCase()));
         // Check for permission to invite players to this tribe
         String permGroup = tribe.getMembers().get(player.getUniqueId());
         String perms = tribe.getPermGroups().get(permGroup);
         if (!perms.contains("i")){player.sendMessage(ChatColor.RED + "Insufficient Permissions"); return false;}
         // Check if player is online
         for (PlayerData invited : PlayerData.player_data_hashmap.values()){
-            if (!invited.getDisplay().equalsIgnoreCase(args[1])){continue;}
+            if (!invited.getDisplay().equalsIgnoreCase(playerName)){continue;}
             // Add tribe name to player file
             List<String> invites = invited.getInvites();
-            if (invites.contains(args[2])){
+            if (invites.contains(tribeName)){
                 player.sendMessage(ChatColor.RED + "Player has already been invited to this group!");
                 return false;
             }
-            invites.add(args[2]);
+            invites.add(tribeName);
             invited.setInvites(invites);
             // Add player uuid to tribe file
             List<UUID> tribeInvites = tribe.getInvites();
@@ -41,9 +43,9 @@ public class AddMember {
             PlayerData.player_data_hashmap.put(invited.getUuid(), invited);
             TribeData.tribe_hashmap.put(tribe.getTribeID(), tribe);
             TribeData.tribeConversionHashmap.put(tribe.getName().toLowerCase(), tribe.getTribeID());
-            player.sendMessage("Invited " + args[1] + " to " + args[2]);
+            player.sendMessage("Invited " + playerName + " to " + tribeName);
             Player invitedPlayer = Bukkit.getPlayer(invited.getUuid());
-            invitedPlayer.sendMessage("You have been invited to " + args[2] + ". Use /tribe join " + args[2] + " to join.");
+            invitedPlayer.sendMessage("You have been invited to " + tribeName + ". Use /tribe join " + tribeName + " to join.");
             return true;
         }
         // If the player is offline, search player files
@@ -51,7 +53,7 @@ public class AddMember {
             try {
                 Reader invitedFileReader = new FileReader(invitedFile);
                 PlayerData invitedData = gson.fromJson(invitedFileReader, PlayerData.class);
-                if (!invitedData.getDisplay().equalsIgnoreCase(args[1])){continue;}
+                if (!invitedData.getDisplay().equalsIgnoreCase(playerName)){continue;}
                 // Found invited player's file.
                 // Add invites to player and tribe files.
                 List<String> invites = invitedData.getInvites();
@@ -70,7 +72,7 @@ public class AddMember {
                 gson.toJson(invitedData, invitedFileWriter);
                 invitedFileWriter.flush();
                 invitedFileWriter.close();
-                player.sendMessage("Invited " + args[1] + " to " + args[2]);
+                player.sendMessage("Invited " + playerName + " to " + tribeName);
                 return true;
 
             } catch (IOException e) {

@@ -15,8 +15,10 @@ import java.util.UUID;
 
 public class KickMember {
     public static boolean kickMember(Player player, String[] args, Gson gson){
+        String playerName = args[1];
+        String tribeName = args[2];
         // Search for tribe in tribe hashmap
-        if (Util.checkTribe(args[0].toLowerCase())){player.sendMessage(ChatColor.RED + "This tribe does not exist!"); return false;}
+        if (Util.checkTribe(tribeName.toLowerCase())){player.sendMessage(ChatColor.RED + "This tribe does not exist!"); return false;}
         TribeData tribe = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(args[0].toLowerCase()));
         // Check for permission to kick players
         String permGroup = tribe.getMembers().get(player.getUniqueId());
@@ -24,9 +26,9 @@ public class KickMember {
         if (!perms.contains("k")){player.sendMessage(ChatColor.RED + "Insufficient Permissions"); return false;}
         UUID kickedUUID = null;
         // Get PlayerData for kicked player
-        if (Bukkit.getPlayerExact(args[2]) != null){
+        if (Bukkit.getPlayerExact(playerName) != null){
             // Player is online
-            PlayerData kickedData = PlayerData.player_data_hashmap.get(Bukkit.getPlayerExact(args[2]).getUniqueId());
+            PlayerData kickedData = PlayerData.player_data_hashmap.get(Bukkit.getPlayerExact(playerName).getUniqueId());
             kickedUUID = kickedData.getUuid();
             // Check that kicked player is in the tribe
             if (!tribe.getMembers().containsKey(kickedData.getUuid())){player.sendMessage(ChatColor.RED + "Player is not in tribe!"); return false;}
@@ -67,9 +69,12 @@ public class KickMember {
         HashMap<UUID, String> members = tribe.getMembers();
         if (kickedUUID == null){player.sendMessage(ChatColor.RED + "Player does not exist!"); return false;}
         members.remove(kickedUUID);
+        HashMap<String, UUID> memberIds = tribe.getMemberIds();
+        memberIds.remove(playerName.toLowerCase());
+        tribe.setMemberIds(memberIds);
         TribeData.tribe_hashmap.put(tribe.getTribeID(), tribe);
         // Send kicker confirmation message
-        player.sendMessage("Kicked " + args[2] + " from " + args[0]);
+        player.sendMessage("Kicked " + playerName + " from " + tribeName);
         return true;
     }
 }

@@ -14,13 +14,14 @@ import java.util.UUID;
 
 public class TribeInfo {
     public static boolean tribeInfo(Player player, String[] args){
+        String tribeName = args[1];
         // Check if tribe exists
-        if (!TribeData.tribeConversionHashmap.containsKey(args[1])){
+        if (!TribeData.tribeConversionHashmap.containsKey(tribeName)){
             player.sendMessage(ChatColor.RED + "This tribe does not exist!");
             return false;
         }
         // Check if player is member of tribe
-        TribeData tribe = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(args[1].toLowerCase()));
+        TribeData tribe = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(tribeName.toLowerCase()));
         List<String> message = new ArrayList<>();
         if (!Util.isInTribe(player.getUniqueId(), tribe.getTribeID())){
             message.add("Owner: " + tribe.getLeaderDisplay());

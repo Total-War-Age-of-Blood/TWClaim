@@ -33,8 +33,6 @@ public class BreakReinforcement implements Listener {
     NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(), "owner");
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e){
-        // TODO if block is bastion and being destroyed, trigger destroyBastion
-        // TODO if block is door and being destroyed, destroy both blocks
         // TODO if block is door and not reinforced, look for reinforcement on other door block and subtract from there
         Player player = e.getPlayer();
         Block block = e.getBlock();

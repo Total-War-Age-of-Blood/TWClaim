@@ -9,18 +9,19 @@ import org.bukkit.entity.Player;
 public class ClaimMode {
     // TODO store info for other arguments such as not claiming air blocks
     public static boolean claimTribe(Player player, String[] args, PlayerData playerData){
+        String tribeName = args[1];
         // Check if tribe exists
-        if (!TribeData.tribeConversionHashmap.containsKey(args[1].toLowerCase())){
+        if (!TribeData.tribeConversionHashmap.containsKey(tribeName.toLowerCase())){
             player.sendMessage(ChatColor.RED + "This tribe does not exist!");
             return false;
         }
         // Check if player is in tribe
-        if (!Util.isInTribe(player.getUniqueId(), TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(args[1].toLowerCase())).getTribeID())){
+        if (!Util.isInTribe(player.getUniqueId(), TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(tribeName.toLowerCase())).getTribeID())){
             player.sendMessage(ChatColor.RED + "Not a member of this tribe!");
             return false;
         }
         // Check player perms
-        TribeData tribeData = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(args[1].toLowerCase()));
+        TribeData tribeData = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(tribeName.toLowerCase()));
         if (!tribeData.getPermGroups().get(tribeData.getMembers().get(player.getUniqueId())).contains("r")){
             player.sendMessage(ChatColor.RED + "Insufficient Permissions");
         }

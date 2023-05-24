@@ -7,14 +7,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 
 public class JoinTribe {
     public static boolean joinTribe(Player player, String[] args, PlayerData playerData){
-        if (Util.checkTribe(args[1].toLowerCase())){player.sendMessage(ChatColor.RED + "This tribe does not exist!"); return false;}
-        TribeData tribe = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(args[1].toLowerCase()));
+        final String tribeName = args[1];
+        if (Util.checkTribe(tribeName.toLowerCase())){player.sendMessage(ChatColor.RED + "This tribe does not exist!"); return false;}
+        TribeData tribe = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(tribeName.toLowerCase()));
         // Check that tribe invited player
         if (!tribe.getInvites().contains(player.getUniqueId())){player.sendMessage(ChatColor.RED + "You do not have permission to join this tribe"); return false;}
         // Update the tribe and player data
@@ -24,6 +25,9 @@ public class JoinTribe {
         List<String> playerTribeInvites = playerData.getInvites();
         playerTribeInvites.remove(tribe.getName());
         playerData.getTribes().put(tribe.getTribeID(), tribe.getName());
+        HashMap<String, UUID> memberIds = tribe.getMemberIds();
+        memberIds.put(player.getDisplayName().toLowerCase(), player.getUniqueId());
+        tribe.setMemberIds(memberIds);
         TribeData.tribe_hashmap.put(tribe.getTribeID(), tribe);
         PlayerData.player_data_hashmap.put(player.getUniqueId(), playerData);
 

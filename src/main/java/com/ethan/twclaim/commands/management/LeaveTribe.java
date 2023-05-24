@@ -8,8 +8,9 @@ import org.bukkit.entity.Player;
 
 public class LeaveTribe {
     public static void leaveTribe(Player player, String[] args){
+        String tribeName = args[1];
         // Check that the player gave the name of a tribe
-        if (!Util.isTribe(TribeData.tribeConversionHashmap.get(args[1].toLowerCase()))){
+        if (!Util.isTribe(TribeData.tribeConversionHashmap.get(tribeName.toLowerCase()))){
             player.sendMessage(ChatColor.RED + "Tribe does not exist");
             return;
         }

@@ -46,6 +46,7 @@ public class TribeData {
     UUID leader;
     String leaderDisplay;
     // A list of tribe members. The String value is their perms group.
+    HashMap<String, UUID> memberIds;
     HashMap<UUID, String> members;
     // The first String is the name of the perms group within the tribe. The second string will be the code for which
     // perms that group has access to. Ex: "--aob-".
@@ -53,7 +54,7 @@ public class TribeData {
     HashMap<String, String> permGroups;
     List<UUID> invites;
 
-    public TribeData(UUID tribeID, String name, UUID leader, HashMap<UUID, String> members, HashMap<String, String> permGroups, List<UUID> invites, String leaderDisplay) {
+    public TribeData(UUID tribeID, String name, UUID leader, HashMap<String, UUID> memberIds, HashMap<UUID, String> members, HashMap<String, String> permGroups, List<UUID> invites, String leaderDisplay) {
         this.tribeID = tribeID;
         this.name = name;
         this.leader = leader;
@@ -61,6 +62,7 @@ public class TribeData {
         this.permGroups = permGroups;
         this.invites = invites;
         this.leaderDisplay = leaderDisplay;
+        this.memberIds = memberIds;
     }
 
     public UUID getTribeID() {
@@ -117,5 +119,13 @@ public class TribeData {
 
     public void setLeaderDisplay(String leaderDisplay) {
         this.leaderDisplay = leaderDisplay;
+    }
+
+    public HashMap<String, UUID> getMemberIds() {
+        return memberIds;
+    }
+
+    public void setMemberIds(HashMap<String, UUID> memberIds) {
+        this.memberIds = memberIds;
     }
 }
