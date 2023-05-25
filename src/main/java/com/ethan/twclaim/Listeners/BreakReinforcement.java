@@ -19,6 +19,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.checkerframework.checker.units.qual.C;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,7 +34,6 @@ public class BreakReinforcement implements Listener {
     NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(), "owner");
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e){
-        // TODO if block is door and not reinforced, look for reinforcement on other door block and subtract from there
         Player player = e.getPlayer();
         Block block = e.getBlock();
         // Get the block's persistent data container
@@ -124,6 +124,13 @@ public class BreakReinforcement implements Listener {
         List<Block> blockList = e.blockList();
         for (Block block : blockList){
             PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
+            if (SwitchEvent.DOOR.contains(block.getType())){
+                boolean removeBlock = doorExplosion(container, block);
+                if (removeBlock){
+                    blockList.remove(block);
+                }
+                continue;
+            }
             if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING) && !container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){continue;}
             if (container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING) && !container.has(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING)){
                 blockList.remove(block);
@@ -139,6 +146,7 @@ public class BreakReinforcement implements Listener {
                 continue;
             }
             blockList.remove(block);
+            System.out.println("Protecting " + block.getType());
             container.set(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER, reinforcement - explosionDamage);
         }
     }
@@ -148,6 +156,13 @@ public class BreakReinforcement implements Listener {
         List<Block> blockList = e.blockList();
         for (Block block : blockList){
             PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
+            if (SwitchEvent.DOOR.contains(block.getType())){
+                boolean removeBlock = doorExplosion(container, block);
+                if (removeBlock){
+                    blockList.remove(block);
+                }
+                continue;
+            }
             if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING) && !container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){continue;}
             if (container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING) && !container.has(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING)){
                 blockList.remove(block);
@@ -163,7 +178,41 @@ public class BreakReinforcement implements Listener {
                 continue;
             }
             blockList.remove(block);
+            System.out.println("Protecting " + block.getType());
             container.set(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER, reinforcement - explosionDamage);
         }
+    }
+
+    public boolean doorExplosion(PersistentDataContainer container, Block block){
+        // Check if the door is reinforced
+        // If door not reinforced, or if can't withstand explosion, check other half for adequate reinforcement
+        if (container.has(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER)){
+            int reinforcement = container.get(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER);
+            int explosionDamage = TWClaim.getPlugin().getConfig().getInt("explosion-damage");
+            if (explosionDamage <= reinforcement){
+                System.out.println("Door adequately reinforced");
+                container.set(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER, reinforcement - explosionDamage);
+                return true;
+            }
+        }
+        Block otherHalf;
+        if (SwitchEvent.getDoorHalf(block, block.getType())){
+            otherHalf = block.getWorld().getBlockAt(block.getX(), block.getY() - 1, block.getZ());
+            System.out.println("Top Block");
+        } else{
+            otherHalf = block.getWorld().getBlockAt(block.getX(), block.getY() + 1, block.getZ());
+            System.out.println("Bottom Block");
+        }
+        PersistentDataContainer otherContainer = new CustomBlockData(otherHalf, TWClaim.getPlugin());
+        if (!otherContainer.has(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER)){
+            System.out.println("Other half has no reinforcement");
+            return false;}
+        int reinforcement = otherContainer.get(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER);
+        int explosionDamage = TWClaim.getPlugin().getConfig().getInt("explosion-damage");
+        if (explosionDamage > reinforcement){
+            System.out.println("Explosion too powerful");
+            return false;}
+        System.out.println("Protecting " + block.getType());
+        return true;
     }
 }

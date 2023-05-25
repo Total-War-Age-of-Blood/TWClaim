@@ -12,13 +12,17 @@ import java.util.*;
 
 public class Perms {
     public static void createPerms(Player player, String[] args){
+        if (args.length != 5){
+            player.sendMessage(ChatColor.RED + "Correct usage: /tribe perms create [tribe] [group] [perms]");
+            return;
+        }
         // Check that tribe is correct
         // Command format ex: /tribe perms create nerd knight sbfkl
         String tribeName = args[2];
         String groupName = args[3];
         String permsName = args[4];
         // Check that player input a tribe and is a tribe member
-        if (!Util.isTribe(TribeData.tribeConversionHashmap.get(tribeName.toLowerCase())) || args.length != 5){
+        if (!Util.isTribe(TribeData.tribeConversionHashmap.get(tribeName.toLowerCase()))){
             player.sendMessage(ChatColor.RED + "Correct usage: /tribe perms create [tribe] [group] [perms]");
             return;
         }
@@ -30,8 +34,8 @@ public class Perms {
         // Check that the player has the ability to edit perms
         String permGroup = tribeData.getMembers().get(player.getUniqueId());
         String perms = tribeData.getPermGroups().get(permGroup);
-        if (perms.contains("p")){
-            player.sendMessage("Insufficient Permissions");
+        if (!perms.contains("p")){
+            player.sendMessage( ChatColor.RED + "Insufficient Permissions");
             return;
         }
         // Check that player is not trying to change leader perms
@@ -70,8 +74,8 @@ public class Perms {
         // Check that the player has the ability to edit perms
         String permGroup = tribeData.getMembers().get(player.getUniqueId());
         String perms = tribeData.getPermGroups().get(permGroup);
-        if (perms.contains("p")){
-            player.sendMessage("Insufficient Permissions");
+        if (!perms.contains("p")){
+            player.sendMessage(ChatColor.RED + "Insufficient Permissions");
             return;
         }
 
@@ -122,8 +126,8 @@ public class Perms {
         // Check that the player has the ability to edit perms
         String permGroup = tribeData.getMembers().get(player.getUniqueId());
         String perms = tribeData.getPermGroups().get(permGroup);
-        if (perms.contains("p")){
-            player.sendMessage("Insufficient Permissions");
+        if (!perms.contains("p")){
+            player.sendMessage(ChatColor.RED + "Insufficient Permissions");
             return;
         }
 
@@ -153,12 +157,16 @@ public class Perms {
     }
 
     public static void promoteDemote(Player player, String[] args){
+        if (args.length != 5){
+            player.sendMessage(ChatColor.RED + "Correct usage: /tribe perms promote [tribe] [player] [group]");
+            return;
+        }
         String tribeName = args[2];
         String playerName = args[3];
         String groupName = args[4];
         // Check that player input a tribe and is a tribe member
         if (!Util.isTribe(TribeData.tribeConversionHashmap.get(tribeName.toLowerCase()))){
-            player.sendMessage(ChatColor.RED + "Correct usage: /tribe perms create [tribe] [group] [member]");
+            player.sendMessage(ChatColor.RED + "Correct usage: /tribe perms promote [tribe] [player] [group]");
             return;
         }
         TribeData tribeData = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(tribeName.toLowerCase()));
@@ -169,8 +177,8 @@ public class Perms {
         // Check that the player has the ability to edit perms
         String permGroup = tribeData.getMembers().get(player.getUniqueId());
         String perms = tribeData.getPermGroups().get(permGroup);
-        if (perms.contains("p")){
-            player.sendMessage("Insufficient Permissions");
+        if (!perms.contains("p")){
+            player.sendMessage(ChatColor.RED + "Insufficient Permissions");
             return;
         }
 

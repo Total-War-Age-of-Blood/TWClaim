@@ -57,7 +57,7 @@ public class TribeCommand implements CommandExecutor {
             return JoinTribe.joinTribe(player, args, playerData);
         }
 
-        if (args.length == 3 && args[1].equalsIgnoreCase("kick")) {
+        if (args.length == 3 && args[0].equalsIgnoreCase("kick")) {
             return KickMember.kickMember(player, args, gson);
         }
 

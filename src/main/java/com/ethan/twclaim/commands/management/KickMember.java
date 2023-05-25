@@ -19,7 +19,7 @@ public class KickMember {
         String tribeName = args[2];
         // Search for tribe in tribe hashmap
         if (Util.checkTribe(tribeName.toLowerCase())){player.sendMessage(ChatColor.RED + "This tribe does not exist!"); return false;}
-        TribeData tribe = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(args[0].toLowerCase()));
+        TribeData tribe = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(tribeName.toLowerCase()));
         // Check for permission to kick players
         String permGroup = tribe.getMembers().get(player.getUniqueId());
         String perms = tribe.getPermGroups().get(permGroup);

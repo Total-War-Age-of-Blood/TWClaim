@@ -54,7 +54,7 @@ public class TabComplete implements TabCompleter {
         }
 
         if (args.length == 3){
-            if (args[0].equalsIgnoreCase("add") || args[0].equalsIgnoreCase("perms")){
+            if (args[0].equalsIgnoreCase("add") || args[0].equalsIgnoreCase("perms") || args[0].equalsIgnoreCase("kick")){
                 PlayerData playerData = PlayerData.player_data_hashmap.get(player.getUniqueId());
                 List<String> tribeNames = new ArrayList<>();
                 for (UUID key : playerData.getTribes().keySet()){
