@@ -5,6 +5,8 @@ reinforcements:
 
 # Reinforcement value subtracted when a block is blown up
 explosion-damage: 10
+# Reinforcement value subtracted when block would be broken by fire
+fire-damage: 5
 
 # Bastions consume fuel to work. Set the fuel types and values here.
 bastion-fuel:

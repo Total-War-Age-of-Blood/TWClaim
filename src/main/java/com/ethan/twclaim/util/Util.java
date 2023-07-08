@@ -13,6 +13,7 @@ import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.inventory.Inventory;
@@ -141,6 +142,29 @@ public class Util {
         ItemStack bastionItem = bastionItem();
         e.getEntity().getWorld().dropItem(e.getEntity().getLocation(), bastionItem);
         System.out.println("Entity Explode event");
+    }
+
+    public static void removeReinforcement(PersistentDataContainer container, BlockBurnEvent e, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey){
+        // Remove PDCs from block
+        container.remove(materialKey);
+        container.remove(key);
+        container.remove(ownKey);
+        if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){
+            return;
+        }
+        // Remove bastion from PDC
+        Bastion.bastions.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "bastion"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "fuel"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "fuel-consumption"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "anti-teleport"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "anti-flight"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "surveillance"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "range"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "exp-storage"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "exp-amount"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "range-distance"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "active-upgrades"));
     }
 
     public static boolean isTribe(UUID uuid){

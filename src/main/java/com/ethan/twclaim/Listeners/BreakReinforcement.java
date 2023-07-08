@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.inventory.ItemStack;
@@ -214,5 +215,21 @@ public class BreakReinforcement implements Listener {
             return false;}
         System.out.println("Protecting " + block.getType());
         return true;
+    }
+
+    @EventHandler
+    public void blockBurnEvent(BlockBurnEvent e){
+        Block block = e.getBlock();
+        PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
+        if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER)){return;}
+        int fireDamage = TWClaim.getPlugin().getConfig().getInt("fire-damage");
+        int reinforcement = container.get(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER);
+        if (!(reinforcement >= fireDamage)){
+            Util.removeReinforcement(container, e, materialKey, key, ownKey);
+            return;
+        }
+        reinforcement -= fireDamage;
+        container.set(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER, reinforcement);
+        e.setCancelled(true);
     }
 }

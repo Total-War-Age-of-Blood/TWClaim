@@ -74,6 +74,7 @@ public class PlayerData implements Listener {
     public void onPlayerLeave(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         PlayerData playerData = PlayerData.player_data_hashmap.get(player.getUniqueId());
+        playerData.setMode("None");
         // Save playerData to file
         try {
             File playerFolder = new File(TWClaim.getPlugin().getDataFolder(), "PlayerData");

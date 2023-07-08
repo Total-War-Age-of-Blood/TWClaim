@@ -29,7 +29,7 @@ public class TribeInfo {
             StringBuilder membersString = new StringBuilder("Members: ");
             for (UUID member : members.keySet()){
                 if (member.equals(tribe.getLeader())){continue;}
-                OfflinePlayer memberPlayer = Bukkit.getPlayer(member);
+                OfflinePlayer memberPlayer = Bukkit.getOfflinePlayer(member);
                 membersString.append(members.get(member)).append(memberPlayer.getName()).append(", ");
             }
             message.add(membersString.toString());
@@ -41,7 +41,7 @@ public class TribeInfo {
         StringBuilder membersString = new StringBuilder("Members: ");
         for (UUID member : members.keySet()){
             if (member.equals(tribe.getLeader())){continue;}
-            OfflinePlayer memberPlayer = Bukkit.getPlayer(member);
+            OfflinePlayer memberPlayer = Bukkit.getOfflinePlayer(member);
             membersString.append(members.get(member)).append(" " + memberPlayer.getName()).append(", ");
         }
         message.add(membersString.toString());
