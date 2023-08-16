@@ -5,10 +5,7 @@ import com.ethan.twclaim.data.PlayerData;
 import com.ethan.twclaim.data.TribeData;
 import com.ethan.twclaim.util.Util;
 import com.jeff_media.customblockdata.CustomBlockData;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -20,7 +17,6 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.checkerframework.checker.units.qual.C;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,16 +36,42 @@ public class BreakReinforcement implements Listener {
         // Get the block's persistent data container
         PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
         // Check that block is reinforced
+        // If block is crop, do an investigation
+        if (Tag.CROPS.isTagged(block.getType())){
+            boolean belowReinforced = Util.checkSpecialReinforcement(Tag.CROPS, e);
+            if (belowReinforced){
+                e.setCancelled(true);
+                return;}
+        }
+        // If block is a sapling, do an investigation
+        if (Tag.SAPLINGS.isTagged(block.getType())){
+            boolean belowReinforced = Util.checkSpecialReinforcement(Tag.SAPLINGS, e);
+            if (belowReinforced){
+                e.setCancelled(true);
+                return;}
+        }
+        if (Tag.FLOWERS.isTagged(block.getType())){
+            boolean belowReinforced = Util.checkSpecialReinforcement(Tag.FLOWERS, e);
+            if (belowReinforced){
+                e.setCancelled(true);
+                return;}
+        }
         if (!container.has(key, PersistentDataType.INTEGER) || !container.has(ownKey, PersistentDataType.STRING)){
             // If block is door, do an investigation
-            if (!SwitchEvent.DOOR.contains(block.getType())){return;}
-            if (SwitchEvent.getDoorHalf(block, block.getType())){
-                block = block.getWorld().getBlockAt(block.getX(), block.getY() - 1, block.getZ());
-            }else {
-                block = block.getWorld().getBlockAt(block.getX(), block.getY() + 1, block.getZ());
+            if (SwitchEvent.DOOR.contains(block.getType())) {
+                if (SwitchEvent.getDoorHalf(block, block.getType())) {
+                    block = block.getWorld().getBlockAt(block.getX(), block.getY() - 1, block.getZ());
+                } else {
+                    block = block.getWorld().getBlockAt(block.getX(), block.getY() + 1, block.getZ());
+                }
+                container = new CustomBlockData(block, TWClaim.getPlugin());
+                if (!container.has(key, PersistentDataType.INTEGER) || !container.has(ownKey, PersistentDataType.STRING)) {
+                    return;
+                }
             }
-            container = new CustomBlockData(block, TWClaim.getPlugin());
-            if (!container.has(key, PersistentDataType.INTEGER )|| !container.has(ownKey, PersistentDataType.STRING)){return;}
+            // Will catch if the block is a bastion without an owner
+            Util.removeReinforcement(container, materialKey, key, ownKey, e);
+            return;
         }
         // Check if player has permission to break the block. First, check if player is member of the tribe that owns
         // the block. Then, check if the player has "break" in their permission string.
@@ -58,7 +80,6 @@ public class BreakReinforcement implements Listener {
         int reinforcement = container.get(key, PersistentDataType.INTEGER);
         ArrayList<HashMap<String, Integer>> reinforcements = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get("reinforcements");
         if ((playerData.getTribes().containsKey(owner))){
-            System.out.println("Tribe owner");
             TribeData tribe = TribeData.tribe_hashmap.get(owner);
             String permsGroup = tribe.getMembers().get(player.getUniqueId());
             String perms = tribe.getPermGroups().get(permsGroup);
@@ -147,7 +168,6 @@ public class BreakReinforcement implements Listener {
                 continue;
             }
             blockList.remove(block);
-            System.out.println("Protecting " + block.getType());
             container.set(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER, reinforcement - explosionDamage);
         }
     }
@@ -179,19 +199,17 @@ public class BreakReinforcement implements Listener {
                 continue;
             }
             blockList.remove(block);
-            System.out.println("Protecting " + block.getType());
             container.set(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER, reinforcement - explosionDamage);
         }
     }
 
     public boolean doorExplosion(PersistentDataContainer container, Block block){
         // Check if the door is reinforced
-        // If door not reinforced, or if can't withstand explosion, check other half for adequate reinforcement
+        // If door not reinforced, or if it can't withstand explosion, check other half for adequate reinforcement
         if (container.has(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER)){
             int reinforcement = container.get(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER);
             int explosionDamage = TWClaim.getPlugin().getConfig().getInt("explosion-damage");
             if (explosionDamage <= reinforcement){
-                System.out.println("Door adequately reinforced");
                 container.set(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER, reinforcement - explosionDamage);
                 return true;
             }
@@ -199,21 +217,16 @@ public class BreakReinforcement implements Listener {
         Block otherHalf;
         if (SwitchEvent.getDoorHalf(block, block.getType())){
             otherHalf = block.getWorld().getBlockAt(block.getX(), block.getY() - 1, block.getZ());
-            System.out.println("Top Block");
         } else{
             otherHalf = block.getWorld().getBlockAt(block.getX(), block.getY() + 1, block.getZ());
-            System.out.println("Bottom Block");
         }
         PersistentDataContainer otherContainer = new CustomBlockData(otherHalf, TWClaim.getPlugin());
         if (!otherContainer.has(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER)){
-            System.out.println("Other half has no reinforcement");
             return false;}
         int reinforcement = otherContainer.get(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER);
         int explosionDamage = TWClaim.getPlugin().getConfig().getInt("explosion-damage");
         if (explosionDamage > reinforcement){
-            System.out.println("Explosion too powerful");
             return false;}
-        System.out.println("Protecting " + block.getType());
         return true;
     }
 

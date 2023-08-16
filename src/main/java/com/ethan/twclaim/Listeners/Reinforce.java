@@ -1,11 +1,12 @@
 package com.ethan.twclaim.Listeners;
 
 import com.ethan.twclaim.TWClaim;
+import com.ethan.twclaim.data.Bastion;
 import com.ethan.twclaim.data.PlayerData;
 import com.ethan.twclaim.util.Util;
+import com.ethan.twclaim.data.TribeData;
 import com.jeff_media.customblockdata.CustomBlockData;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -21,6 +22,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.UUID;
 
 public class Reinforce implements Listener {
     @EventHandler
@@ -45,6 +47,28 @@ public class Reinforce implements Listener {
         if (container.has(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER)){
             player.sendMessage(ChatColor.RED + "Block is already reinforced");
             return;
+        }
+        // Check block is not in range of a foreign bastion that has fuel
+        Bastion bastion = Bastion.inClaimRange(block.getLocation());
+        if (bastion != null && BastionEvents.hasFuel(bastion)){
+            Block bastionBlock = player.getWorld().getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
+            PersistentDataContainer bastionContainer = new CustomBlockData(bastionBlock, TWClaim.getPlugin());
+            UUID bastionOwner = UUID.fromString(bastionContainer.get(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING));
+            System.out.println(bastionOwner);
+            if (Util.isTribe(bastionOwner)){
+                System.out.println("Is tribe");
+                TribeData tribeData = TribeData.tribe_hashmap.get(bastionOwner);
+                if (!tribeData.getMembers().containsKey(player.getUniqueId())){
+                    player.sendMessage(ChatColor.RED + "Cannot reinforce blocks in foreign bastion zone");
+                    return;
+                }
+            } else {
+                System.out.println("Is not tribe");
+                if (!bastionOwner.equals(player.getUniqueId())){
+                    player.sendMessage(ChatColor.RED + "Cannot reinforce blocks in foreign bastion zone");
+                    return;
+                }
+            }
         }
         // Check that the player is holding a reinforcement material
         // The material and reinforcement value are a hashmap inside an array of other hashmaps.

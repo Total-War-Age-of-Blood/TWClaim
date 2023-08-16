@@ -1,13 +1,16 @@
 package com.ethan.twclaim.Listeners;
 
 import com.ethan.twclaim.TWClaim;
+import com.ethan.twclaim.data.Bastion;
 import com.ethan.twclaim.data.PlayerData;
+import com.ethan.twclaim.data.TribeData;
 import com.ethan.twclaim.util.Util;
 import com.jeff_media.customblockdata.CustomBlockData;
 import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -27,6 +30,27 @@ public class Fortify implements Listener {
         // Return if player is not in fortify mode
         if (!playerData.getMode().equalsIgnoreCase("Fortify")){return;}
         HashMap<String, Integer> reinforcements = Util.getReinforcementTypes();
+
+        // Check block is not in range of a foreign bastion that has fuel
+        Block block = e.getBlock();
+        Bastion bastion = Bastion.inClaimRange(block.getLocation());
+        if (bastion != null && BastionEvents.hasFuel(bastion)){
+            Block bastionBlock = player.getWorld().getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
+            PersistentDataContainer bastionContainer = new CustomBlockData(bastionBlock, TWClaim.getPlugin());
+            UUID bastionOwner = UUID.fromString(bastionContainer.get(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING));
+            if (Util.isTribe(bastionOwner)){
+                TribeData tribeData = TribeData.tribe_hashmap.get(bastionOwner);
+                if (!tribeData.getMembers().containsKey(player.getUniqueId())){
+                    player.sendMessage(ChatColor.RED + "Cannot fortify blocks in foreign bastion zone");
+                    return;
+                }
+            } else {
+                if (!bastionOwner.equals(player.getUniqueId())){
+                    player.sendMessage(ChatColor.RED + "Cannot fortify blocks in foreign bastion zone");
+                    return;
+                }
+            }
+        }
 
         // Cycle through inventory for first ItemStack that matches a valid reinforcement
         Inventory inventory = player.getInventory();

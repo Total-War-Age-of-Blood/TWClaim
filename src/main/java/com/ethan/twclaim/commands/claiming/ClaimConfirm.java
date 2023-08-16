@@ -224,8 +224,8 @@ public class ClaimConfirm {
 
     public static boolean isInEnemyBastion(List<Block> blockSelect, Player player){
         for (Block block : blockSelect){
-            if (Bastion.inBastionRange(block.getLocation()) != null){
-                Bastion bastion = Bastion.inBastionRange(block.getLocation());
+            if (Bastion.inClaimRange(block.getLocation()) != null){
+                Bastion bastion = Bastion.inClaimRange(block.getLocation());
                 Block bastionBlock = block.getWorld().getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
                 PersistentDataContainer container = new CustomBlockData(bastionBlock, TWClaim.getPlugin());
                 UUID owner = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING));

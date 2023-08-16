@@ -18,11 +18,14 @@ base-consumption: 10
 # The amount of time (minutes) between fuel consumptions
 base-consumption-period: 1
 
-# Range of Bastion per level
-bastion-ranges:
-- 30
-- 60
-- 90
+# Range of Bastion
+bastion-range: 30
+
+# The range of protection around a bastion extender
+extender-range: 30
+
+# The fuel cost of extenders
+extender-cost: 10
 
 # Costs for bastion upgrades
 anti-flight:
@@ -32,17 +35,6 @@ anti-flight:
 anti-teleport:
   - diamond: 10
   - fuel consumption when active: 10
-
-range:
-  level-1:
-    - diamond: 10
-    - fuel consumption: 10
-  level-2:
-    - diamond: 20
-    - fuel consumption: 20
-  level-3:
-    - diamond: 30
-    - fuel consumption: 30
 
 surveillance:
   - diamond: 10

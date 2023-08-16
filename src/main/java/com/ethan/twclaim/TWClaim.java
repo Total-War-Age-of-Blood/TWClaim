@@ -4,22 +4,21 @@ import com.ethan.twclaim.Listeners.*;
 import com.ethan.twclaim.commands.TabComplete;
 import com.ethan.twclaim.commands.TribeCommand;
 import com.ethan.twclaim.data.Bastion;
+import com.ethan.twclaim.data.Extender;
 import com.ethan.twclaim.data.PlayerData;
 import com.ethan.twclaim.data.TribeData;
 import com.ethan.twclaim.guis.BastionFuelGUI;
 import com.ethan.twclaim.guis.BastionGUI;
 import com.ethan.twclaim.guis.BastionUpgradeGUI;
+import com.ethan.twclaim.guis.ExtenderGUI;
 import com.ethan.twclaim.util.Util;
 import com.google.gson.Gson;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -28,7 +27,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
 
 public final class TWClaim extends JavaPlugin {
 
@@ -67,6 +65,13 @@ public final class TWClaim extends JavaPlugin {
         bastionRecipe.setIngredient('A', Material.COAL_BLOCK);
         Bukkit.addRecipe(bastionRecipe);
 
+        ItemStack bastionRangeExtender = Util.bastionRangeExtenderItem();
+        ShapedRecipe extenderRecipe = new ShapedRecipe(new NamespacedKey(this, "extender"), bastionRangeExtender);
+        extenderRecipe.shape("AAA", "AEA", "AAA");
+        extenderRecipe.setIngredient('A', Material.ENDER_EYE);
+        extenderRecipe.setIngredient('E', Material.END_CRYSTAL);
+        Bukkit.addRecipe(extenderRecipe);
+
         // Event Listeners
         Bukkit.getPluginManager().registerEvents(new PlayerData(), this);
         Bukkit.getPluginManager().registerEvents(new Reinforce(), this);
@@ -79,6 +84,9 @@ public final class TWClaim extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new BastionFuelGUI(), this);
         Bukkit.getPluginManager().registerEvents(new BastionUpgradeGUI(), this);
         Bukkit.getPluginManager().registerEvents(new SwitchEvent(), this);
+        Bukkit.getPluginManager().registerEvents(new ExtenderEvents(), this);
+        Bukkit.getPluginManager().registerEvents(new ExtenderGUI(), this);
+        Bukkit.getPluginManager().registerEvents(new Pistons(), this);
 
         // Plugin Commands
         getCommand("tribe").setExecutor(new TribeCommand(this));
@@ -90,8 +98,9 @@ public final class TWClaim extends JavaPlugin {
         File tribe_data_folder = new File(getDataFolder(), "TribeData");
         if (!tribe_data_folder.exists()) {tribe_data_folder.mkdir();}
 
-        // Load Bastions
+        // Load Bastions & Extenders
         Bastion.loadBastions();
+        Extender.loadExtenders();
         // Load Tribes data from files
         TribeData tribe_hashmap = new TribeData();
         tribe_hashmap.loadTribes();
@@ -108,8 +117,9 @@ public final class TWClaim extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
-        // Save Bastions
+        // Save Bastions and Extenders
         Bastion.saveBastions();
+        Extender.saveExtenders();
         // Save Player and Tribe Data
         for (PlayerData playerData : PlayerData.player_data_hashmap.values()){
             playerData.setMode("None");

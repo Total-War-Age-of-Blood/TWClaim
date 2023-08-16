@@ -22,7 +22,6 @@ public class JoinTribe {
         List<UUID> tribeInvites = tribe.getInvites();
         tribeInvites.remove(player.getUniqueId());
         tribe.getMembers().put(player.getUniqueId(), "Member");
-        System.out.println(tribe.getMembers());
         List<String> playerTribeInvites = playerData.getInvites();
         playerTribeInvites.remove(tribe.getName());
         playerData.getTribes().put(tribe.getTribeID(), tribe.getName());

@@ -30,8 +30,7 @@ public class BastionUpgradeGUI implements Listener {
     final int antiFlight = 10;
     final int antiTeleport = 11;
     final int surveillance = 12;
-    final int range = 13;
-    final int expStorage = 14;
+    final int expStorage = 13;
 
     public void openBastionGUI(Player player){
         gui = Bukkit.createInventory(null, 27, "Bastion Upgrades");
@@ -40,13 +39,11 @@ public class BastionUpgradeGUI implements Listener {
         int antiTeleportLevel = container.get(new NamespacedKey(TWClaim.getPlugin(), "anti-teleport"), PersistentDataType.INTEGER);
         int antiFlightLevel = container.get(new NamespacedKey(TWClaim.getPlugin(), "anti-flight"), PersistentDataType.INTEGER);
         int surveillanceLevel = container.get(new NamespacedKey(TWClaim.getPlugin(), "surveillance"), PersistentDataType.INTEGER);
-        int rangeLevel = container.get(new NamespacedKey(TWClaim.getPlugin(), "range"), PersistentDataType.INTEGER);
         int expStorageLevel = container.get(new NamespacedKey(TWClaim.getPlugin(), "exp-storage"), PersistentDataType.INTEGER);
         container.get(new NamespacedKey(TWClaim.getPlugin(), "exp-amount"), PersistentDataType.INTEGER);
         Util.generateGUI(gui, Material.ELYTRA, antiFlight, antiFlightLevel, "anti-flight", container);
         Util.generateGUI(gui, Material.ENDER_PEARL, antiTeleport, antiTeleportLevel, "anti-teleport", container);
         Util.generateGUI(gui, Material.GLOW_INK_SAC, surveillance, surveillanceLevel, "surveillance", container);
-        Util.generateGUI(gui, Material.BOW, range, rangeLevel, "range", container);
         Util.generateGUI(gui, Material.EXPERIENCE_BOTTLE, expStorage, expStorageLevel, "exp-storage", container);
         Util.generateGUI(gui, Material.BARRIER, ChatColor.RED + "Back", "", 18);
 
@@ -83,9 +80,6 @@ public class BastionUpgradeGUI implements Listener {
                 break;
             case surveillance:
                 clickUpgrade(container, ChatColor.WHITE + "" + ChatColor.BOLD + "Surveillance", "surveillance", "S", player, surveillance);
-                break;
-            case range:
-                clickRange(container, "range", player, range);
                 break;
             case expStorage:
                 clickUpgrade(container, ChatColor.GREEN + "Exp Storage", "exp-storage", "E", player, expStorage);
@@ -222,6 +216,7 @@ public class BastionUpgradeGUI implements Listener {
         // Mark upgrade as inactive
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.GREEN + "Level 1");
+        // Range upgrade has been removed, so this should be reworked eventually.
         if (!upgrade.equalsIgnoreCase("range")) {
             cost = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get(upgrade);
             for (HashMap<String, Integer> hash : cost) {
@@ -261,62 +256,5 @@ public class BastionUpgradeGUI implements Listener {
         // Add the upgrade to bastion PDC
         NamespacedKey upgradeLevel = new NamespacedKey(TWClaim.getPlugin(), upgrade);
         container.set(upgradeLevel, PersistentDataType.INTEGER, 1);
-    }
-
-    private void clickRange(PersistentDataContainer container, String upgrade, Player player, int place){
-        ArrayList<Integer> ranges = (ArrayList<Integer>) TWClaim.getPlugin().getConfig().get("bastion-ranges");
-        int maxLevel = ranges.size() - 1;
-        int level = container.get(new NamespacedKey(TWClaim.getPlugin(), upgrade), PersistentDataType.INTEGER);
-
-        // If power is at max level, do nothing
-        if (level >= maxLevel){return;}
-        // Try to purchase upgrade
-        int nextLevel = level + 1;
-        ArrayList<HashMap<String, Integer>> cost = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get("range.level-" + nextLevel);
-        HashMap<String, Integer> requiredAmounts = new HashMap<>();
-        int additionalFuelConsumption = 0;
-        for (HashMap<String, Integer> hash : cost){
-            for(String key : hash.keySet()){
-                if (key.contains("fuel")){
-                    additionalFuelConsumption += hash.get(key);
-                    continue;
-                }
-                int amount = hash.get(key);
-                if (requiredAmounts.containsKey(key)){
-                    requiredAmounts.put(key, requiredAmounts.get(key) + amount);
-                    continue;
-                }
-                requiredAmounts.put(key, amount);
-            }
-        }
-        if(!processPurchase(player, requiredAmounts)){return;}
-        // Update the gui, PDC, and Bastion object if successful
-        UUID bastionId = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING));
-        Bastion bastion = Bastion.bastions.get(bastionId);
-        container.set(new NamespacedKey(TWClaim.getPlugin(), upgrade), PersistentDataType.INTEGER, nextLevel);
-        container.set(new NamespacedKey(TWClaim.getPlugin(), "range-distance"), PersistentDataType.INTEGER, ranges.get(nextLevel));
-        int fuelConsumption = container.get(new NamespacedKey(TWClaim.getPlugin(), "fuel-consumption"), PersistentDataType.INTEGER);
-        container.set(new NamespacedKey(TWClaim.getPlugin(), "fuel-consumption"), PersistentDataType.INTEGER, fuelConsumption + additionalFuelConsumption);
-        bastion.setRadius(ranges.get(nextLevel));
-        ItemStack item =  gui.getItem(place);
-        ItemMeta itemMeta = item.getItemMeta();
-        // If there is another level, show that level's costs
-        List<String> lore = new ArrayList<>();
-        String display = ChatColor.LIGHT_PURPLE + "Range " + "(" + nextLevel + "/" + maxLevel + ")";
-        itemMeta.setDisplayName(display);
-        lore.add("Increases range of bastion");
-        if (!(nextLevel >= maxLevel)){
-            lore.add(ChatColor.UNDERLINE + "Cost");
-            // Get cost from config
-            cost = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get("range.level-" + (nextLevel + 1));
-            for (HashMap<String, Integer> hash : cost){
-                for (String key : hash.keySet()){
-                    lore.add(hash.get(key) + " " + key);
-                }
-            }
-        }
-        itemMeta.setLore(lore);
-        item.setItemMeta(itemMeta);
-        gui.setItem(range, item);
     }
 }

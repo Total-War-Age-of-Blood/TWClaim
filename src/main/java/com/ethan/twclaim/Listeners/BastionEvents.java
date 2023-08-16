@@ -17,6 +17,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -26,9 +27,40 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.UUID;
 
 public class BastionEvents implements Listener {
+
+    // Informational Messages
+    public static HashMap<Player, Bastion> territoryTracker = new HashMap<>();
+    @EventHandler
+    public void onEnterOrLeaveBastion(PlayerMoveEvent e){
+        Player player = e.getPlayer();
+        Bastion bastion = Bastion.inClaimRange(player.getLocation());
+        if (bastion == null){
+            if (territoryTracker.containsKey(player)){
+                player.sendMessage("Leaving " + territoryTracker.get(player).getName() + " territory");
+            }
+            territoryTracker.remove(player);
+            return;
+        }
+        if (bastion.getName() == null){return;}
+        if (territoryTracker.get(player) == null){
+            player.sendMessage("Entering " + bastion.getName() + " territory");
+            territoryTracker.put(player, bastion);
+        }
+        if (!territoryTracker.get(player).equals(bastion)) {
+            player.sendMessage("Entering " + bastion.getName() + " territory");
+            territoryTracker.put(player, bastion);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event){
+        territoryTracker.remove(event.getPlayer());
+    }
+
     @EventHandler
     public void onBastionPlace(BlockPlaceEvent e){
         ItemStack item = e.getItemInHand();
@@ -36,8 +68,7 @@ public class BastionEvents implements Listener {
         ItemMeta itemMeta = item.getItemMeta();
         final PersistentDataContainer container = itemMeta.getPersistentDataContainer();
         if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){return;}
-        ArrayList<Integer> rangeList = (ArrayList<Integer>) TWClaim.getPlugin().getConfig().get("bastion-ranges");
-        Bastion.createBastion(e.getBlockPlaced(), rangeList.get(0));
+        Bastion.createBastion(e.getBlockPlaced(), TWClaim.getPlugin().getConfig().getInt("bastion-range"));
         e.getPlayer().sendMessage("Bastion Placed.");
     }
     @EventHandler
@@ -74,6 +105,11 @@ public class BastionEvents implements Listener {
         // Open a GUI
         Bastion.playerLastBastion.put(player.getUniqueId(), e.getClickedBlock());
         Bukkit.getPluginManager().callEvent(new OpenGUI(player, "Bastion"));
+        // Set the bastion's name if it has not been set already
+        Bastion bastion = Bastion.bastions.get(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)));
+        if (bastion.getName() == null){
+            Bastion.nameBastion(bastion, ownKey);
+        }
         e.setCancelled(true);
     }
     @EventHandler
@@ -81,8 +117,8 @@ public class BastionEvents implements Listener {
         if (!e.getCause().equals(PlayerTeleportEvent.TeleportCause.CHORUS_FRUIT) && !e.getCause().equals(PlayerTeleportEvent.TeleportCause.ENDER_PEARL)){return;}
         // Check if player is in range of bastion
         Player player = e.getPlayer();
-        if (Bastion.inBastionRange(e.getTo()) == null){return;}
-        Bastion bastion = Bastion.inBastionRange(e.getTo());
+        if (Bastion.inClaimRange(e.getTo()) == null){return;}
+        Bastion bastion = Bastion.inClaimRange(e.getTo());
         if (!hasFuel(bastion)){return;}
         Block block = player.getWorld().getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
         PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
@@ -107,9 +143,9 @@ public class BastionEvents implements Listener {
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent e){
         Player player = e.getPlayer();
-        if (Bastion.inBastionRange(player.getLocation()) == null){return;}
+        if (Bastion.inClaimRange(e.getBlock().getLocation()) == null){return;}
         // Check if player is member of bastion
-        Bastion bastion = Bastion.inBastionRange(player.getLocation());
+        Bastion bastion = Bastion.inClaimRange(player.getLocation());
         if (!hasFuel(bastion)){return;}
         Block block = player.getWorld().getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
         final PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
@@ -128,8 +164,8 @@ public class BastionEvents implements Listener {
     @EventHandler
     public void onPlayerGlide(PlayerMoveEvent e){
         Player player = e.getPlayer();
-        if (Bastion.inBastionRange(player.getLocation()) == null || !player.isGliding()){return;}
-        Bastion bastion = Bastion.inBastionRange(player.getLocation());
+        if (Bastion.inClaimRange(player.getLocation()) == null || !player.isGliding()){return;}
+        Bastion bastion = Bastion.inClaimRange(player.getLocation());
         if (!hasFuel(bastion)){return;}
         Block block = player.getWorld().getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
         final PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
@@ -154,9 +190,9 @@ public class BastionEvents implements Listener {
         Player player = e.getPlayer();
         // Check if player is sneaking
         if (player.isSneaking()){return;}
-        if (Bastion.inBastionRange(player.getLocation()) == null){return;}
+        if (Bastion.inClaimRange(player.getLocation()) == null){return;}
         // Check if bastion has surveillance
-        Bastion bastion = Bastion.inBastionRange(player.getLocation());
+        Bastion bastion = Bastion.inClaimRange(player.getLocation());
         // Check if bastion has fuel
         if (!hasFuel(bastion)){return;}
         Block block = player.getWorld().getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);

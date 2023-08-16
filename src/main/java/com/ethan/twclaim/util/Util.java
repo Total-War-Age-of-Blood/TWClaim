@@ -1,17 +1,15 @@
 package com.ethan.twclaim.util;
 
-import com.ethan.twclaim.Listeners.BastionEvents;
 import com.ethan.twclaim.TWClaim;
 import com.ethan.twclaim.data.Bastion;
+import com.ethan.twclaim.data.Extender;
 import com.ethan.twclaim.data.PlayerData;
 import com.ethan.twclaim.data.TribeData;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
+import com.jeff_media.customblockdata.CustomBlockData;
+import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
@@ -44,12 +42,14 @@ public class Util {
         container.remove(materialKey);
         container.remove(key);
         container.remove(ownKey);
-        if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){
+        if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING) && !container.has(new NamespacedKey(TWClaim.getPlugin(), "ExtenderUUID"), PersistentDataType.STRING)){
             return;
         }
         // Remove bastion from PDC
-        Bastion.bastions.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)));
+        if (container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){Bastion.bastions.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)));}
+        if (container.has(new NamespacedKey(TWClaim.getPlugin(), "ExtenderUUID"), PersistentDataType.STRING)){Extender.extenders.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "ExtenderUUID"), PersistentDataType.STRING)));}
         container.remove(new NamespacedKey(TWClaim.getPlugin(), "bastion"));
+        container.remove(new NamespacedKey(TWClaim.getPlugin(), "ExtenderUUID"));
         container.remove(new NamespacedKey(TWClaim.getPlugin(), "fuel"));
         container.remove(new NamespacedKey(TWClaim.getPlugin(), "fuel-consumption"));
         container.remove(new NamespacedKey(TWClaim.getPlugin(), "anti-teleport"));
@@ -273,21 +273,6 @@ public class Util {
                     }
                 }
                 break;
-            case "range":
-                int maxLevel = ((ArrayList<Integer>) TWClaim.getPlugin().getConfig().get("bastion-ranges")).size() - 1;
-                display = ChatColor.LIGHT_PURPLE + "Range " + "(" + level + "/" + maxLevel + ")";
-                lore.add("Increase range of bastion");
-                if (level >= ((ArrayList<?>) TWClaim.getPlugin().getConfig().get("bastion-ranges")).size() - 1){break;}
-                lore.add(ChatColor.UNDERLINE + "Cost");
-                // Get cost from config
-                int nextLevel = level + 1;
-                ArrayList<HashMap<String, Integer>> rangeCost = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get("range.level-" + nextLevel);
-                for (HashMap<String, Integer> hash : rangeCost){
-                    for (String key : hash.keySet()){
-                        lore.add(hash.get(key) + " " + key);
-                    }
-                }
-                break;
             case "exp-storage":
                 if (activeUpgrades.contains("E")){
                     itemMeta.addEnchant(Enchantment.DURABILITY, 1, false);
@@ -354,5 +339,51 @@ public class Util {
         bastionMeta.getPersistentDataContainer().set(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING, "yes");
         bastion.setItemMeta(bastionMeta);
         return bastion;
+    }
+
+    public static ItemStack bastionRangeExtenderItem(){
+        ItemStack bastionRangeExtender = new ItemStack(Material.BEACON);
+        ItemMeta meta = bastionRangeExtender.getItemMeta();
+        meta.setDisplayName(ChatColor.GOLD + "Range Extender");
+        meta.setLore(Arrays.asList(ChatColor.GOLD + "Extends range of bastion by 30 blocks from where it is placed. Farther from bastion = higher fuel consumption."));
+        meta.getPersistentDataContainer().set(new NamespacedKey(TWClaim.getPlugin(), "extender"), PersistentDataType.STRING, "yes");
+        bastionRangeExtender.setItemMeta(meta);
+        bastionRangeExtender.setAmount(4);
+        return bastionRangeExtender;
+    }
+
+    public static boolean hasPermission(Player player, TribeData tribeData, CharSequence perm){
+        String group = tribeData.getMembers().get(player.getUniqueId());
+        String perms = tribeData.getPermGroups().get(group);
+        return perms.contains(perm);
+    }
+    // Returns true if the block below the special case is reinforced
+    public static boolean checkSpecialReinforcement(Tag<Material> tag, BlockBreakEvent e){;
+        NamespacedKey key = new NamespacedKey(TWClaim.getPlugin(), "reinforcement");
+        NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(), "owner");
+        Block block = e.getBlock();
+        // Get the block's persistent data container
+        Block blockBelow = block;
+        // Will keep going down until it finds a non-crop block.
+        while (tag.isTagged(blockBelow.getType())){
+            blockBelow = block.getWorld().getBlockAt(block.getX(), block.getY() - 1, block.getZ());
+        }
+        PersistentDataContainer container = new CustomBlockData(blockBelow, TWClaim.getPlugin());
+        // If block below is not reinforced, return false
+        if (!container.has(key, PersistentDataType.INTEGER) && container.has(ownKey, PersistentDataType.STRING)){return false;}
+        // If block below is reinforced, check if player can break it
+        // If block below is reinforced and unbreakable, return true
+        Player player = e.getPlayer();
+        UUID playerId = player.getUniqueId();
+        UUID blockOwner = UUID.fromString(container.get(ownKey, PersistentDataType.STRING));
+        // Check if player is private owner
+        if (playerId.equals(blockOwner)){return false;}
+        // Check if player is tribe member
+        if (Util.isTribe(blockOwner)){
+            if (!Util.isInTribe(playerId, blockOwner)){return true;}
+            TribeData tribeData = TribeData.tribe_hashmap.get(blockOwner);
+            return !Util.hasPermission(player, tribeData, "r");
+        }
+        return true;
     }
 }
