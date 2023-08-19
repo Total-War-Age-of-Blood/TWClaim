@@ -104,7 +104,6 @@ public class Util {
         // Make a proper bastion drop (the lore disappears when the player mines one normally.)
         ItemStack bastionItem = bastionItem();
         e.getBlock().getWorld().dropItem(e.getBlock().getLocation(), bastionItem);
-        System.out.println("Block Explode Event");
     }
 
     public static void removeReinforcement(PersistentDataContainer container, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey, EntityExplodeEvent e){
@@ -141,7 +140,6 @@ public class Util {
         // Make a proper bastion drop (the lore disappears when the player mines one normally.)
         ItemStack bastionItem = bastionItem();
         e.getEntity().getWorld().dropItem(e.getEntity().getLocation(), bastionItem);
-        System.out.println("Entity Explode event");
     }
 
     public static void removeReinforcement(PersistentDataContainer container, BlockBurnEvent e, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey){

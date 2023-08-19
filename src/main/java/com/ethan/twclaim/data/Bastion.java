@@ -163,7 +163,6 @@ public class Bastion implements Listener {
         }
         // If there is a possible bastion and a possible extender, compare timestamps and return oldest
         if (possibleBastion != null && possibleExtender != null){
-            System.out.println("Possible Bastion and Possible Extender");
             if (possibleBastion.getTimestamp() < possibleExtender.getTimestamp()){return possibleBastion;}
             else{
                 UUID father = possibleExtender.getFatherBastion();
@@ -172,7 +171,6 @@ public class Bastion implements Listener {
         }
         // If there is only one possibility, return it.
         if (possibleBastion != null || possibleExtender != null){
-            System.out.println("Possible Bastion or Possible Extender");
             if (possibleBastion!= null){return possibleBastion;}
             else{
                 UUID father = possibleExtender.getFatherBastion();
@@ -181,7 +179,6 @@ public class Bastion implements Listener {
         }
 
         // If no possibilities, return null
-        System.out.println("No possibilities");
         return null;
     }
 

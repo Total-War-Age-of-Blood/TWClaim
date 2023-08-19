@@ -18,15 +18,9 @@ public class FortifyMode {
             return false;
         }
         TribeData tribe = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(tribeName.toLowerCase()));
-        System.out.println(TribeData.tribeConversionHashmap.get(tribeName.toLowerCase()));
-        System.out.println(TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(tribeName.toLowerCase())));
-        System.out.println(tribe);
         // Check for permission to reinforce blocks
         String permGroup = tribe.getMembers().get(player.getUniqueId());
-        System.out.println(tribe.getMembers());
-        System.out.println(permGroup);
         String perms = tribe.getPermGroups().get(permGroup);
-        System.out.println(perms);
         if (!perms.contains("r")){player.sendMessage(ChatColor.RED + "Insufficient Permissions"); return false;}
         if (playerData.getMode().equalsIgnoreCase("Fortify")){
             playerData.setMode("None");

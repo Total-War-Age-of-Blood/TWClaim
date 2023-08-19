@@ -66,7 +66,6 @@ public class PlayerData implements Listener {
             ex.printStackTrace();
         }
         PlayerData.player_data_hashmap.put(player.getUniqueId(), playerData);
-        System.out.println("New Player: Put Data in Hashmap");
     }
 
     // Remove PlayerData from HashMap when player leaves
@@ -87,7 +86,6 @@ public class PlayerData implements Listener {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(player.getDisplayName() + " saved!");
         player_data_hashmap.remove(player.getUniqueId());
     }
 

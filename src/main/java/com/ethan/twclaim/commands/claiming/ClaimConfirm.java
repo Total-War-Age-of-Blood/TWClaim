@@ -61,7 +61,6 @@ public class ClaimConfirm {
 
         // Cycle through the player's inventory to count all reinforcement materials.
         HashMap<String, Integer> reinforcementTypes = Util.getReinforcementTypes();
-        System.out.println(reinforcementTypes);
         LinkedHashMap<Material, Integer> materialCount = getReinforcementMaterials(player, reinforcementTypes);
 
         // Iterate through materialCount to see if there are enough items of one material to claim the whole area.
@@ -139,8 +138,6 @@ public class ClaimConfirm {
                                 ArrayList<Material> keyList = new ArrayList<>(selectedMaterials.keySet());
                                 Random random = new Random();
                                 int randomNumber = random.nextInt(keyList.size());
-                                System.out.println(keyList);
-                                System.out.println(randomNumber);
                                 materialType = keyList.get(randomNumber).toString().toLowerCase();
                                 reinforcement = reinforcementTypes.get(materialType);
                                 // If the randomly selected material is available, subtract 1 of that material from selectedMaterials

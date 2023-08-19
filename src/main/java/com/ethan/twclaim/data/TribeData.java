@@ -36,7 +36,6 @@ public class TribeData {
                 TWClaim.getGson().toJson(entry.getValue(), file_writer);
                 file_writer.flush();
                 file_writer.close();
-                System.out.println(entry.getValue().name + " saved!");
             }catch (IOException exception){exception.printStackTrace();}
         }
     }

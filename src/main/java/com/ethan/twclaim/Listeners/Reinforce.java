@@ -54,16 +54,13 @@ public class Reinforce implements Listener {
             Block bastionBlock = player.getWorld().getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
             PersistentDataContainer bastionContainer = new CustomBlockData(bastionBlock, TWClaim.getPlugin());
             UUID bastionOwner = UUID.fromString(bastionContainer.get(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING));
-            System.out.println(bastionOwner);
             if (Util.isTribe(bastionOwner)){
-                System.out.println("Is tribe");
                 TribeData tribeData = TribeData.tribe_hashmap.get(bastionOwner);
                 if (!tribeData.getMembers().containsKey(player.getUniqueId())){
                     player.sendMessage(ChatColor.RED + "Cannot reinforce blocks in foreign bastion zone");
                     return;
                 }
             } else {
-                System.out.println("Is not tribe");
                 if (!bastionOwner.equals(player.getUniqueId())){
                     player.sendMessage(ChatColor.RED + "Cannot reinforce blocks in foreign bastion zone");
                     return;

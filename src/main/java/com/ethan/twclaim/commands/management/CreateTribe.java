@@ -53,7 +53,6 @@ public class CreateTribe {
             TribeData.tribeConversionHashmap.put(tribe.getName().toLowerCase(), tribeID);
             PlayerData.player_data_hashmap.put(player.getUniqueId(), playerData);
 
-            System.out.println("Saved data!");
             player.sendMessage("You have created " + args[1]);
         }catch(IOException e){e.printStackTrace();}
         return true;
