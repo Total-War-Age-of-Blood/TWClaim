@@ -33,28 +33,37 @@ public class BreakReinforcement implements Listener {
     public void onBlockBreak(BlockBreakEvent e){
         Player player = e.getPlayer();
         Block block = e.getBlock();
+        PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
+        boolean cancelBreak = cancelBreak(block, player);
+        if (!cancelBreak){
+            Util.removeReinforcement(container, materialKey, key, ownKey, e);
+            return;
+        }
+        e.setCancelled(true);
+    }
+
+    // Returns false if BlockBreakEvent should not be canceled.
+    public static boolean cancelBreak(Block block, Player player){
+        NamespacedKey materialKey = new NamespacedKey(TWClaim.getPlugin(), "material");
+        NamespacedKey key = new NamespacedKey(TWClaim.getPlugin(), "reinforcement");
+        NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(), "owner");
+
         // Get the block's persistent data container
         PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
         // Check that block is reinforced
         // If block is crop, do an investigation
         if (Tag.CROPS.isTagged(block.getType())){
-            boolean belowReinforced = Util.checkSpecialReinforcement(Tag.CROPS, e);
-            if (belowReinforced){
-                e.setCancelled(true);
-                return;}
+            boolean belowReinforced = Util.checkSpecialReinforcement(Tag.CROPS, block, player);
+            if (belowReinforced){return true;}
         }
         // If block is a sapling, do an investigation
         if (Tag.SAPLINGS.isTagged(block.getType())){
-            boolean belowReinforced = Util.checkSpecialReinforcement(Tag.SAPLINGS, e);
-            if (belowReinforced){
-                e.setCancelled(true);
-                return;}
+            boolean belowReinforced = Util.checkSpecialReinforcement(Tag.SAPLINGS, block, player);
+            if (belowReinforced){return true;}
         }
         if (Tag.FLOWERS.isTagged(block.getType())){
-            boolean belowReinforced = Util.checkSpecialReinforcement(Tag.FLOWERS, e);
-            if (belowReinforced){
-                e.setCancelled(true);
-                return;}
+            boolean belowReinforced = Util.checkSpecialReinforcement(Tag.FLOWERS, block, player);
+            if (belowReinforced){return true;}
         }
         if (!container.has(key, PersistentDataType.INTEGER) || !container.has(ownKey, PersistentDataType.STRING)){
             // If block is door, do an investigation
@@ -66,12 +75,11 @@ public class BreakReinforcement implements Listener {
                 }
                 container = new CustomBlockData(block, TWClaim.getPlugin());
                 if (!container.has(key, PersistentDataType.INTEGER) || !container.has(ownKey, PersistentDataType.STRING)) {
-                    return;
+                    return false;
                 }
             }
             // Will catch if the block is a bastion without an owner
-            Util.removeReinforcement(container, materialKey, key, ownKey, e);
-            return;
+            return false;
         }
         // Check if player has permission to break the block. First, check if player is member of the tribe that owns
         // the block. Then, check if the player has "break" in their permission string.
@@ -97,14 +105,10 @@ public class BreakReinforcement implements Listener {
                             ItemStack item = new ItemStack(Material.matchMaterial(material));
                             player.getWorld().dropItem(block.getLocation(), item);
                         }
-                        // Remove reinforcement keys from block data
-                        Util.removeReinforcement(container, materialKey, key, ownKey,e);
-                        return;
+                        return false;
                     }
-                    // Remove reinforcement keys from block data
-                    Util.removeReinforcement(container, materialKey, key, ownKey, e);
                 }
-                return;
+                return false;
             }
         } else if (player.getUniqueId().equals(owner)){
             // Get material and reinforcement points from the config
@@ -120,25 +124,20 @@ public class BreakReinforcement implements Listener {
                         ItemStack item = new ItemStack(Material.matchMaterial(material));
                         player.getWorld().dropItem(block.getLocation(), item);
                     }
-                    // Remove reinforcement keys from block data
-                    Util.removeReinforcement(container, materialKey, key, ownKey, e);
-                    return;
+                    return false;
                 }
             }
-            // Remove reinforcement keys from block data
-            Util.removeReinforcement(container, materialKey, key, ownKey, e);
-            return;
+            return false;
         }
         // If block is reinforced, cancel the event and lower reinforcement by 1.
         if (reinforcement - 1 <= 0){
-            Util.removeReinforcement(container, materialKey, key, ownKey, e);
-            return;
+            return false;
         }
-        e.setCancelled(true);
         container.set(key, PersistentDataType.INTEGER, reinforcement - 1);
         player.sendMessage("This block is reinforced");
-        e.getPlayer().spawnParticle(Particle.ENCHANTMENT_TABLE, block.getLocation(), 20);
-        e.getPlayer().playSound(block.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 2);
+        player.spawnParticle(Particle.ENCHANTMENT_TABLE, block.getLocation(), 20);
+        player.playSound(block.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 2);
+        return true;
     }
 
     @EventHandler

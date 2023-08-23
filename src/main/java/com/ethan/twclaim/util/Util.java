@@ -356,10 +356,9 @@ public class Util {
         return perms.contains(perm);
     }
     // Returns true if the block below the special case is reinforced
-    public static boolean checkSpecialReinforcement(Tag<Material> tag, BlockBreakEvent e){;
+    public static boolean checkSpecialReinforcement(Tag<Material> tag, Block block, Player player){;
         NamespacedKey key = new NamespacedKey(TWClaim.getPlugin(), "reinforcement");
         NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(), "owner");
-        Block block = e.getBlock();
         // Get the block's persistent data container
         Block blockBelow = block;
         // Will keep going down until it finds a non-crop block.
@@ -371,7 +370,6 @@ public class Util {
         if (!container.has(key, PersistentDataType.INTEGER) && container.has(ownKey, PersistentDataType.STRING)){return false;}
         // If block below is reinforced, check if player can break it
         // If block below is reinforced and unbreakable, return true
-        Player player = e.getPlayer();
         UUID playerId = player.getUniqueId();
         UUID blockOwner = UUID.fromString(container.get(ownKey, PersistentDataType.STRING));
         // Check if player is private owner
