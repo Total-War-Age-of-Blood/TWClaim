@@ -17,6 +17,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +35,7 @@ public class BreakReinforcement implements Listener {
         Player player = e.getPlayer();
         Block block = e.getBlock();
         PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
-        boolean cancelBreak = cancelBreak(block, player, materialKey, key, ownKey);
+        boolean cancelBreak = cancelBreak(block, player, materialKey, key, ownKey, TWClaim.getPlugin());
         if (!cancelBreak){
             Util.removeReinforcement(container, materialKey, key, ownKey, e);
             return;
@@ -43,9 +44,9 @@ public class BreakReinforcement implements Listener {
     }
 
     // Returns false if BlockBreakEvent should not be canceled.
-    public static boolean cancelBreak(Block block, Player player, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey){
+    public static boolean cancelBreak(Block block, Player player, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey, Plugin TWClaim){
         // Get the block's persistent data container
-        PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
+        PersistentDataContainer container = new CustomBlockData(block, TWClaim);
         // Check that block is reinforced
         // If block is crop, do an investigation
         if (Tag.CROPS.isTagged(block.getType())){
@@ -69,7 +70,7 @@ public class BreakReinforcement implements Listener {
                 } else {
                     block = block.getWorld().getBlockAt(block.getX(), block.getY() + 1, block.getZ());
                 }
-                container = new CustomBlockData(block, TWClaim.getPlugin());
+                container = new CustomBlockData(block, TWClaim);
                 if (!container.has(key, PersistentDataType.INTEGER) || !container.has(ownKey, PersistentDataType.STRING)) {
                     return false;
                 }
@@ -82,7 +83,7 @@ public class BreakReinforcement implements Listener {
         PlayerData playerData = PlayerData.player_data_hashmap.get(player.getUniqueId());
         UUID owner = UUID.fromString(container.get(ownKey, PersistentDataType.STRING));
         int reinforcement = container.get(key, PersistentDataType.INTEGER);
-        ArrayList<HashMap<String, Integer>> reinforcements = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get("reinforcements");
+        ArrayList<HashMap<String, Integer>> reinforcements = (ArrayList<HashMap<String, Integer>>) TWClaim.getConfig().get("reinforcements");
         if ((playerData.getTribes().containsKey(owner))){
             TribeData tribe = TribeData.tribe_hashmap.get(owner);
             String permsGroup = tribe.getMembers().get(player.getUniqueId());
@@ -97,7 +98,7 @@ public class BreakReinforcement implements Listener {
                         // When we find the material, get its key and divide the block's current reinforcement
                         int configReinforcement = hash.get(material);
                         // If it is above the percentage, drop the material as well as the block
-                        if (reinforcement / configReinforcement * 100 >= (int) TWClaim.getPlugin().getConfig().get("recover-min")){
+                        if (reinforcement / configReinforcement * 100 >= (int) TWClaim.getConfig().get("recover-min")){
                             ItemStack item = new ItemStack(Material.matchMaterial(material));
                             player.getWorld().dropItem(block.getLocation(), item);
                         }
@@ -116,7 +117,7 @@ public class BreakReinforcement implements Listener {
                     // When we find the material, get its key and divide the block's current reinforcement
                     int configReinforcement = hash.get(material);
                     // If it is above the percentage, drop the material as well as the block
-                    if (reinforcement / configReinforcement * 100 >= (int) TWClaim.getPlugin().getConfig().get("recover-min")){
+                    if (reinforcement / configReinforcement * 100 >= (int) TWClaim.getConfig().get("recover-min")){
                         ItemStack item = new ItemStack(Material.matchMaterial(material));
                         player.getWorld().dropItem(block.getLocation(), item);
                     }
