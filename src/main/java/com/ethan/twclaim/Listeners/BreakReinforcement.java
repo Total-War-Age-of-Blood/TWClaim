@@ -34,7 +34,7 @@ public class BreakReinforcement implements Listener {
         Player player = e.getPlayer();
         Block block = e.getBlock();
         PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
-        boolean cancelBreak = cancelBreak(block, player);
+        boolean cancelBreak = cancelBreak(block, player, materialKey, key, ownKey);
         if (!cancelBreak){
             Util.removeReinforcement(container, materialKey, key, ownKey, e);
             return;
@@ -43,11 +43,7 @@ public class BreakReinforcement implements Listener {
     }
 
     // Returns false if BlockBreakEvent should not be canceled.
-    public static boolean cancelBreak(Block block, Player player){
-        NamespacedKey materialKey = new NamespacedKey(TWClaim.getPlugin(), "material");
-        NamespacedKey key = new NamespacedKey(TWClaim.getPlugin(), "reinforcement");
-        NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(), "owner");
-
+    public static boolean cancelBreak(Block block, Player player, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey){
         // Get the block's persistent data container
         PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
         // Check that block is reinforced
