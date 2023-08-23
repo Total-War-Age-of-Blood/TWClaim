@@ -45,10 +45,13 @@ public final class TWClaim extends JavaPlugin {
     public static Gson getGson() {return gson;}
 
     @Override
+    public void onLoad(){
+        plugin = this;
+    }
+
+    @Override
     public void onEnable() {
         // Plugin startup logic
-        plugin = this;
-
         // Kyori
         this.adventure = BukkitAudiences.create(this);
 
