@@ -36,14 +36,13 @@ public class Util {
         return !tribeFound;
     }
 
-    public static void removeReinforcement(PersistentDataContainer container, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey, BlockBreakEvent e){
-
+    public static boolean removeKeys(PersistentDataContainer container, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey){
         // Remove PDCs from block
         container.remove(materialKey);
         container.remove(key);
         container.remove(ownKey);
         if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING) && !container.has(new NamespacedKey(TWClaim.getPlugin(), "ExtenderUUID"), PersistentDataType.STRING)){
-            return;
+            return false;
         }
         // Remove bastion from PDC
         if (container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){Bastion.bastions.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)));}
@@ -60,8 +59,11 @@ public class Util {
         container.remove(new NamespacedKey(TWClaim.getPlugin(), "exp-amount"));
         container.remove(new NamespacedKey(TWClaim.getPlugin(), "range-distance"));
         container.remove(new NamespacedKey(TWClaim.getPlugin(), "active-upgrades"));
-
-
+        return true;
+    }
+    public static void removeReinforcement(PersistentDataContainer container, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey, BlockBreakEvent e){
+        boolean isBastion = removeKeys(container, materialKey, key, ownKey);
+        if (!isBastion){return;}
         // Make a proper bastion drop (the lore disappears when the player mines one normally.)
         ItemStack bastion = bastionItem();
         e.setDropItems(false);
@@ -70,11 +72,7 @@ public class Util {
     }
 
     public static void removeReinforcement(PersistentDataContainer container, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey, BlockExplodeEvent e){
-
-        // Remove PDCs from block
-        container.remove(materialKey);
-        container.remove(key);
-        container.remove(ownKey);
+        removeKeys(container, materialKey, key, ownKey);
         if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){
             return;
         }
@@ -107,11 +105,7 @@ public class Util {
     }
 
     public static void removeReinforcement(PersistentDataContainer container, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey, EntityExplodeEvent e){
-
-        // Remove PDCs from block
-        container.remove(materialKey);
-        container.remove(key);
-        container.remove(ownKey);
+        removeKeys(container, materialKey, key, ownKey);
         if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){
             return;
         }
@@ -143,10 +137,7 @@ public class Util {
     }
 
     public static void removeReinforcement(PersistentDataContainer container, BlockBurnEvent e, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey){
-        // Remove PDCs from block
-        container.remove(materialKey);
-        container.remove(key);
-        container.remove(ownKey);
+        removeKeys(container, materialKey, key, ownKey);
         if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){
             return;
         }
@@ -356,7 +347,7 @@ public class Util {
         return perms.contains(perm);
     }
     // Returns true if the block below the special case is reinforced
-    public static boolean checkSpecialReinforcement(Tag<Material> tag, Block block, Player player){;
+    public static boolean checkSpecialReinforcement(Tag<Material> tag, Block block, Player player){
         NamespacedKey key = new NamespacedKey(TWClaim.getPlugin(), "reinforcement");
         NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(), "owner");
         // Get the block's persistent data container
