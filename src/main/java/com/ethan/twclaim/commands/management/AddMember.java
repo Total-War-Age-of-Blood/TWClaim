@@ -24,6 +24,8 @@ public class AddMember {
         String permGroup = tribe.getMembers().get(player.getUniqueId());
         String perms = tribe.getPermGroups().get(permGroup);
         if (!perms.contains("i")){player.sendMessage(ChatColor.RED + "Insufficient Permissions"); return false;}
+        // Check if player is already in tribe
+        if (tribe.getMemberIds().containsKey(playerName.toLowerCase())){player.sendMessage(ChatColor.RED + "Player already in tribe."); return false;}
         // Check if player is online
         for (PlayerData invited : PlayerData.player_data_hashmap.values()){
             if (!invited.getDisplay().equalsIgnoreCase(playerName)){continue;}

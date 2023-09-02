@@ -353,8 +353,10 @@ public class Util {
         // Get the block's persistent data container
         Block blockBelow = block;
         // Will keep going down until it finds a non-crop block.
+        int i = 1;
         while (tag.isTagged(blockBelow.getType())){
-            blockBelow = block.getWorld().getBlockAt(block.getX(), block.getY() - 1, block.getZ());
+            blockBelow = block.getWorld().getBlockAt(block.getX(), block.getY() - i, block.getZ());
+            i++;
         }
         PersistentDataContainer container = new CustomBlockData(blockBelow, TWClaim.getPlugin());
         // If block below is not reinforced, return false
@@ -362,6 +364,8 @@ public class Util {
         // If block below is reinforced, check if player can break it
         // If block below is reinforced and unbreakable, return true
         UUID playerId = player.getUniqueId();
+        // If the block is not owned, return false
+        if (!container.has(ownKey, PersistentDataType.STRING)){return false;}
         UUID blockOwner = UUID.fromString(container.get(ownKey, PersistentDataType.STRING));
         // Check if player is private owner
         if (playerId.equals(blockOwner)){return false;}

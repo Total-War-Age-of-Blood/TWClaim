@@ -44,8 +44,9 @@ public class TribeData {
     String name;
     UUID leader;
     String leaderDisplay;
-    // A list of tribe members. The String value is their perms group.
+
     HashMap<String, UUID> memberIds;
+    // A list of tribe members. The String value is their perms group.
     HashMap<UUID, String> members;
     // The first String is the name of the perms group within the tribe. The second string will be the code for which
     // perms that group has access to. Ex: "--aob-".
