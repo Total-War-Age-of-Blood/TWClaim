@@ -34,6 +34,7 @@ public class DisbandTribe {
         // Remove the tribe from PlayerData in hashmap
         for (PlayerData playerData : PlayerData.player_data_hashmap.values()){
             playerData.getTribes().remove(tribeData.getTribeID());
+            playerData.getInvites().remove(tribeName);
         }
 
         // Remove the tribe from hashmaps
@@ -46,6 +47,7 @@ public class DisbandTribe {
                 FileReader file_reader = new FileReader(file);
                 PlayerData playerData = TWClaim.getGson().fromJson(file_reader, PlayerData.class);
                 playerData.getTribes().remove(tribeData.getTribeID());
+                playerData.getInvites().remove(tribeName);
             }catch (IOException exception){exception.printStackTrace();}
         }
 

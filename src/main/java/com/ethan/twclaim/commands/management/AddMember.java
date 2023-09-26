@@ -25,6 +25,7 @@ public class AddMember {
         String perms = tribe.getPermGroups().get(permGroup);
         if (!perms.contains("i")){player.sendMessage(ChatColor.RED + "Insufficient Permissions"); return false;}
         // Check if player is already in tribe
+        // TODO fix this being broken for players with format codes in their display name
         if (tribe.getMemberIds().containsKey(playerName.toLowerCase())){player.sendMessage(ChatColor.RED + "Player already in tribe."); return false;}
         // Check if player is online
         for (PlayerData invited : PlayerData.player_data_hashmap.values()){

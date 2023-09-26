@@ -36,11 +36,12 @@ public class Util {
         return !tribeFound;
     }
 
-    public static boolean removeKeys(PersistentDataContainer container, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey){
+    public static boolean removeKeys(PersistentDataContainer container){
         // Remove PDCs from block
         container.remove(materialKey);
         container.remove(key);
         container.remove(ownKey);
+        container.remove(breakCount);
         if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING) && !container.has(new NamespacedKey(TWClaim.getPlugin(), "ExtenderUUID"), PersistentDataType.STRING)){
             return false;
         }
@@ -61,8 +62,8 @@ public class Util {
         container.remove(new NamespacedKey(TWClaim.getPlugin(), "active-upgrades"));
         return true;
     }
-    public static void removeReinforcement(PersistentDataContainer container, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey, BlockBreakEvent e){
-        boolean isBastion = removeKeys(container, materialKey, key, ownKey);
+    public static void removeReinforcement(PersistentDataContainer container, BlockBreakEvent e){
+        boolean isBastion = removeKeys(container);
         if (!isBastion){return;}
         // Make a proper bastion drop (the lore disappears when the player mines one normally.)
         ItemStack bastion = bastionItem();
@@ -71,8 +72,8 @@ public class Util {
 
     }
 
-    public static void removeReinforcement(PersistentDataContainer container, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey, BlockExplodeEvent e){
-        removeKeys(container, materialKey, key, ownKey);
+    public static void removeReinforcement(PersistentDataContainer container, BlockExplodeEvent e){
+        removeKeys(container);
         if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){
             return;
         }
@@ -104,8 +105,8 @@ public class Util {
         e.getBlock().getWorld().dropItem(e.getBlock().getLocation(), bastionItem);
     }
 
-    public static void removeReinforcement(PersistentDataContainer container, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey, EntityExplodeEvent e){
-        removeKeys(container, materialKey, key, ownKey);
+    public static void removeReinforcement(PersistentDataContainer container, EntityExplodeEvent e){
+        removeKeys(container);
         if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){
             return;
         }
@@ -136,8 +137,8 @@ public class Util {
         e.getEntity().getWorld().dropItem(e.getEntity().getLocation(), bastionItem);
     }
 
-    public static void removeReinforcement(PersistentDataContainer container, BlockBurnEvent e, NamespacedKey materialKey, NamespacedKey key, NamespacedKey ownKey){
-        removeKeys(container, materialKey, key, ownKey);
+    public static void removeReinforcement(PersistentDataContainer container, BlockBurnEvent e){
+        removeKeys(container);
         if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){
             return;
         }
@@ -348,8 +349,6 @@ public class Util {
     }
     // Returns true if the block below the special case is reinforced
     public static boolean checkSpecialReinforcement(Tag<Material> tag, Block block, Player player){
-        NamespacedKey key = new NamespacedKey(TWClaim.getPlugin(), "reinforcement");
-        NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(), "owner");
         // Get the block's persistent data container
         Block blockBelow = block;
         // Will keep going down until it finds a non-crop block.
@@ -360,21 +359,58 @@ public class Util {
         }
         PersistentDataContainer container = new CustomBlockData(blockBelow, TWClaim.getPlugin());
         // If block below is not reinforced, return false
-        if (!container.has(key, PersistentDataType.INTEGER) && container.has(ownKey, PersistentDataType.STRING)){return false;}
+        if (!container.has(breakCount, PersistentDataType.INTEGER) && !container.has(getKey(), PersistentDataType.STRING)){return false;}
         // If block below is reinforced, check if player can break it
         // If block below is reinforced and unbreakable, return true
         UUID playerId = player.getUniqueId();
         // If the block is not owned, return false
         if (!container.has(ownKey, PersistentDataType.STRING)){return false;}
         UUID blockOwner = UUID.fromString(container.get(ownKey, PersistentDataType.STRING));
-        // Check if player is private owner
+        // Check if player is private owner or tribe member
         if (playerId.equals(blockOwner)){return false;}
-        // Check if player is tribe member
         if (Util.isTribe(blockOwner)){
             if (!Util.isInTribe(playerId, blockOwner)){return true;}
             TribeData tribeData = TribeData.tribe_hashmap.get(blockOwner);
             return !Util.hasPermission(player, tribeData, "r");
         }
         return true;
+    }
+    private static final NamespacedKey materialKey = new NamespacedKey(TWClaim.getPlugin(), "material");
+    private static final NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(), "owner");
+    private static final NamespacedKey key = new NamespacedKey(TWClaim.getPlugin(), "reinforcement");
+    private static final NamespacedKey breakCount = new NamespacedKey(TWClaim.getPlugin(), "break_count");
+
+    public static NamespacedKey getMaterialKey() {
+        return materialKey;
+    }
+
+    public static NamespacedKey getOwnKey() {
+        return ownKey;
+    }
+
+    public static NamespacedKey getKey() {
+        return key;
+    }
+
+    public static NamespacedKey getBreakCount(){
+        return breakCount;
+    }
+
+    // This will add the PDC keys to blocks that gain protection from any form of claiming
+    public static void addReinforcement(Block block, ItemStack item, PlayerData playerData){
+        PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
+        NamespacedKey materialKey = getMaterialKey();
+        container.set(materialKey, PersistentDataType.STRING, item.getType().toString().toLowerCase());
+        // Keeps track of how much damage has been done to the block
+        NamespacedKey breakCount = getBreakCount();
+        container.set(breakCount, PersistentDataType.INTEGER, 0);
+        // This key keeps track of the owning tribe
+        NamespacedKey ownKey = getOwnKey();
+        container.set(ownKey, PersistentDataType.STRING, playerData.getTarget().toString());
+    }
+
+    public static void convertToBreakCount(PersistentDataContainer container){
+        container.remove(Util.getKey());
+        container.set(Util.getBreakCount(), PersistentDataType.INTEGER, 0);
     }
 }

@@ -57,21 +57,11 @@ public class Fortify implements Listener {
         for (ItemStack item : inventory.getContents()){
             if (item == null){continue;}
             if (!reinforcements.containsKey(item.getType().toString().toLowerCase())){continue;}
-            int reinforcement = reinforcements.get(item.getType().toString().toLowerCase());
             // If there is a match, add reinforcement to the block and delete reinforcement item from inventory
-            final PersistentDataContainer container = new CustomBlockData(e.getBlock(), TWClaim.getPlugin());
-            NamespacedKey materialKey = new NamespacedKey(TWClaim.getPlugin(), "material");
-            container.set(materialKey, PersistentDataType.STRING, item.getType().toString().toLowerCase());
-            // This key keeps track of the reinforcement value of the block
-            NamespacedKey key = new NamespacedKey(TWClaim.getPlugin(), "reinforcement");
-            container.set(key, PersistentDataType.INTEGER, reinforcement);
-            // This key keeps track of the owning tribe
-            NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(), "owner");
-            container.set(ownKey, PersistentDataType.STRING, playerData.getTarget().toString());
-
+            Util.addReinforcement(block, item, playerData);
             // Remove material from inventory
             item.setAmount(item.getAmount() - 1);
-
+            // Effects
             e.getPlayer().spawnParticle(Particle.ENCHANTMENT_TABLE, e.getBlock().getLocation(), 20);
             e.getPlayer().playSound(e.getBlock().getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 2);
             return;

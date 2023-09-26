@@ -34,6 +34,8 @@ public class Reinforce implements Listener {
         // Make sure player was interacting with a block
         if (e.getClickedBlock() == null){return;}
         Player player = e.getPlayer();
+        ItemStack item = player.getInventory().getItemInMainHand();
+        String itemName = item.getType().toString().toLowerCase();
         // Check that player is in reinforcement mode
         PlayerData playerData = PlayerData.player_data_hashmap.get(player.getUniqueId());
         if (!playerData.getMode().equalsIgnoreCase("Reinforce")){return;}
@@ -44,7 +46,7 @@ public class Reinforce implements Listener {
         // https://github.com/JEFF-Media-GbR/CustomBlockData
         final PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
         // If the block has already been reinforced, prevent the player from reinforcing it again.
-        if (container.has(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER)){
+        if (container.has(Util.getKey(), PersistentDataType.INTEGER) || container.has(Util.getBreakCount(), PersistentDataType.INTEGER)){
             player.sendMessage(ChatColor.RED + "Block is already reinforced");
             return;
         }
@@ -53,7 +55,7 @@ public class Reinforce implements Listener {
         if (bastion != null && BastionEvents.hasFuel(bastion)){
             Block bastionBlock = player.getWorld().getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
             PersistentDataContainer bastionContainer = new CustomBlockData(bastionBlock, TWClaim.getPlugin());
-            UUID bastionOwner = UUID.fromString(bastionContainer.get(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING));
+            UUID bastionOwner = UUID.fromString(bastionContainer.get(Util.getOwnKey(), PersistentDataType.STRING));
             if (Util.isTribe(bastionOwner)){
                 TribeData tribeData = TribeData.tribe_hashmap.get(bastionOwner);
                 if (!tribeData.getMembers().containsKey(player.getUniqueId())){
@@ -67,31 +69,15 @@ public class Reinforce implements Listener {
                 }
             }
         }
-        // Check that the player is holding a reinforcement material
-        // The material and reinforcement value are a hashmap inside an array of other hashmaps.
-        ArrayList<HashMap<String, Integer>> reinforcements = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get("reinforcements");
 
-        // Iterate through the hash table to see if any of the entries in the config match the item in the player's hand
-        for (HashMap<String, Integer> hash : reinforcements){
-            for (String material : hash.keySet()){
-                if (!(material.equalsIgnoreCase(player.getInventory().getItemInMainHand().getType().toString()))){continue;}
-                // If a match is found, reinforce the block and return
-                int reinforcement = hash.get(material);
-                // This key keeps track of the reinforcement material
-                NamespacedKey materialKey = new NamespacedKey(TWClaim.getPlugin(), "material");
-                container.set(materialKey, PersistentDataType.STRING, player.getInventory().getItemInMainHand().getType().toString());
-                // This key keeps track of the reinforcement value of the block
-                NamespacedKey key = new NamespacedKey(TWClaim.getPlugin(), "reinforcement");
-                container.set(key, PersistentDataType.INTEGER, reinforcement);
-                // This key keeps track of the owning tribe
-                NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(), "owner");
-                container.set(ownKey, PersistentDataType.STRING, playerData.getTarget().toString());
-                // Remove 1 item from player's hand
-                ItemStack item = player.getInventory().getItemInMainHand();
-                item.setAmount(item.getAmount() - 1);
-                player.getInventory().setItem(EquipmentSlot.HAND, item);
-                return;
-            }
+        // Validate material
+        HashMap<String, Integer> reinforcements = Util.getReinforcementTypes();
+        if (reinforcements.containsKey(itemName)){
+            Util.addReinforcement(block, item, playerData);
+            item.setAmount(item.getAmount() - 1);
+            player.getInventory().setItem(EquipmentSlot.HAND, item);
+        } else{
+            player.sendMessage(ChatColor.RED + "Not a reinforcement material");
         }
     }
 
@@ -102,13 +88,9 @@ public class Reinforce implements Listener {
         PlayerData playerData = PlayerData.player_data_hashmap.get(player.getUniqueId());
         if (!playerData.getMode().equalsIgnoreCase("Reinforce")){return;}
         ItemStack item = e.getItemInHand();
-        ArrayList<HashMap<String, Integer>> reinforcements = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get("reinforcements");
-        for (HashMap<String, Integer> hash : reinforcements){
-            for (String material : hash.keySet()){
-                if (material.equalsIgnoreCase(item.getType().toString())){
-                    e.setCancelled(true);
-                }
-            }
+        HashMap<String, Integer> reinforcements = Util.getReinforcementTypes();
+        if (reinforcements.containsKey(item.getType().toString().toLowerCase())){
+            e.setCancelled(true);
         }
     }
 }

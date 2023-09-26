@@ -113,7 +113,7 @@ public final class TWClaim extends JavaPlugin {
         int period = this.getConfig().getInt("base-consumption-period");
         // Convert to minutes
         period = period * 20 * 60;
-        BukkitTask fuelConsumption = new FuelConsumption().runTaskTimer(this, 0, period);
+        BukkitTask fuelConsumption = new FuelConsumption().runTaskTimer(this, period, period);
 
     }
 

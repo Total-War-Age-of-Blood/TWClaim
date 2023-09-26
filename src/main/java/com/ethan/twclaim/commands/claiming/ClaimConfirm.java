@@ -101,11 +101,7 @@ public class ClaimConfirm {
                 // Enough to claim with multiple
                 if (count + materialAmount >= volume){
                     selectedMaterials.put(material, volume - count);
-                    // TODO implement claiming with multiple materials
-                    List<String> argsList = new ArrayList<>();
-                    for (String arg: args){
-                        argsList.add(arg);
-                    }
+                    List<String> argsList = new ArrayList<>(Arrays.asList(args));
                     if (!argsList.contains("multiple")){
                         TextComponent textComponent = Component.text("You can claim this area if you use multiple materials. ").append(Component.text("Confirm", NamedTextColor.GREEN, TextDecoration.BOLD, TextDecoration.UNDERLINED).clickEvent(ClickEvent.runCommand("/tribe claim confirm multiple")));
                         twClaim.adventure().player(player).sendMessage(textComponent);
@@ -138,17 +134,13 @@ public class ClaimConfirm {
                                 ArrayList<Material> keyList = new ArrayList<>(selectedMaterials.keySet());
                                 Random random = new Random();
                                 int randomNumber = random.nextInt(keyList.size());
-                                materialType = keyList.get(randomNumber).toString().toLowerCase();
-                                reinforcement = reinforcementTypes.get(materialType);
                                 // If the randomly selected material is available, subtract 1 of that material from selectedMaterials
                                 if (selectedMaterials.get(keyList.get(randomNumber)) > 0){
                                     selectedMaterials.put(keyList.get(randomNumber), selectedMaterials.get(keyList.get(randomNumber)) - 1);
                                     matSelected = true;
                                 }
                             }
-                            container.set(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING, playerData.getTarget().toString());
-                            container.set(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER, reinforcement);
-                            container.set(new NamespacedKey(TWClaim.getPlugin(), "material"), PersistentDataType.STRING, materialType);
+                            Util.addReinforcement(block, item, playerData);
                         }
                         player.sendMessage(ChatColor.GREEN + "Area claimed");
                         return true;
@@ -167,10 +159,10 @@ public class ClaimConfirm {
         // Iterate over the list and reinforce
         for (Block block : blockSelect){
             final PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
-            if (container.has(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING)){continue;}
-            container.set(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING, playerData.getTarget().toString());
-            container.set(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER, reinforcement);
-            container.set(new NamespacedKey(TWClaim.getPlugin(), "material"), PersistentDataType.STRING, materialType);
+            if (container.has(Util.getOwnKey(), PersistentDataType.STRING)){continue;}
+            container.set(Util.getOwnKey(), PersistentDataType.STRING, playerData.getTarget().toString());
+            container.set(Util.getBreakCount(), PersistentDataType.INTEGER, 0);
+            container.set(Util.getMaterialKey(), PersistentDataType.STRING, materialType);
         }
         player.sendMessage(ChatColor.GREEN + "Area claimed");
         return true;
@@ -225,7 +217,7 @@ public class ClaimConfirm {
                 Bastion bastion = Bastion.inClaimRange(block.getLocation());
                 Block bastionBlock = block.getWorld().getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
                 PersistentDataContainer container = new CustomBlockData(bastionBlock, TWClaim.getPlugin());
-                UUID owner = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING));
+                UUID owner = UUID.fromString(container.get(Util.getOwnKey(), PersistentDataType.STRING));
                 if (Util.isTribe(owner)){
                     if (!Util.isInTribe(player.getUniqueId(), owner)){
                         player.sendMessage(ChatColor.RED + "Selected area intersects foreign bastion radius");

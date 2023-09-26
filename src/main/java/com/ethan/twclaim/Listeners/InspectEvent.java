@@ -3,6 +3,7 @@ package com.ethan.twclaim.Listeners;
 import com.ethan.twclaim.TWClaim;
 import com.ethan.twclaim.data.PlayerData;
 import com.ethan.twclaim.data.TribeData;
+import com.ethan.twclaim.util.Util;
 import com.jeff_media.customblockdata.CustomBlockData;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -44,7 +45,7 @@ public class InspectEvent implements Listener {
         if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING)){
             messages.add("Owner: None");
         } else{
-            UUID owner = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "owner"), PersistentDataType.STRING));
+            UUID owner = UUID.fromString(container.get(Util.getOwnKey(), PersistentDataType.STRING));
             // Check if owner is tribe or player
             if (TribeData.tribe_hashmap.containsKey(owner)){
                 messages.add("Owner: " + TribeData.tribe_hashmap.get(owner).getName());
@@ -54,11 +55,19 @@ public class InspectEvent implements Listener {
             }
         }
         // Reinforcement Value
-        if (container.get(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER) == null){
+        if (container.get(Util.getKey(), PersistentDataType.INTEGER) == null){
             messages.add("Reinforcement: None");
         } else {
-            int reinforcement = container.get(new NamespacedKey(TWClaim.getPlugin(), "reinforcement"), PersistentDataType.INTEGER);
+            int reinforcement = container.get(Util.getKey(), PersistentDataType.INTEGER);
             messages.add("Reinforcement: " + reinforcement);
+        }
+
+        // Number of Breaks
+        if (container.get(Util.getBreakCount(), PersistentDataType.INTEGER) == null){
+            messages.add("Breaks: None");
+        } else {
+            int breaks = container.get(Util.getBreakCount(), PersistentDataType.INTEGER);
+            messages.add("Breaks: " + breaks);
         }
         player.sendMessage(String.join("\n", messages));
     }
