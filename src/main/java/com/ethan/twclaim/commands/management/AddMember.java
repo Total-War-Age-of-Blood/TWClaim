@@ -7,6 +7,7 @@ import com.ethan.twclaim.util.Util;
 import com.google.gson.Gson;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.io.*;
@@ -16,8 +17,8 @@ import java.util.UUID;
 public class AddMember {
     public static boolean addMember(Player player, String[] args, Gson gson){
 // Search for tribe in tribe hashmap return error if not found
-        String playerName = args[1];
-        String tribeName = args[2];
+        final String playerName = args[1];
+        final String tribeName = args[2];
         if (Util.checkTribe(tribeName.toLowerCase())){player.sendMessage(ChatColor.RED + "This tribe does not exist!"); return false;}
         TribeData tribe = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(tribeName.toLowerCase()));
         // Check for permission to invite players to this tribe
@@ -25,7 +26,6 @@ public class AddMember {
         String perms = tribe.getPermGroups().get(permGroup);
         if (!perms.contains("i")){player.sendMessage(ChatColor.RED + "Insufficient Permissions"); return false;}
         // Check if player is already in tribe
-        // TODO fix this being broken for players with format codes in their display name
         if (tribe.getMemberIds().containsKey(playerName.toLowerCase())){player.sendMessage(ChatColor.RED + "Player already in tribe."); return false;}
         // Check if player is online
         for (PlayerData invited : PlayerData.player_data_hashmap.values()){

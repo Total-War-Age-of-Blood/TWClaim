@@ -22,13 +22,16 @@ public class LeaveTribe {
         }
         // Check that player is not leader
         if (player.getUniqueId().equals(tribeData.getLeader())){
-            player.sendMessage(ChatColor.RED + "The leader cannot leave his tribe. Oo /disband to delete your tribe");
+            player.sendMessage(ChatColor.RED + "The leader cannot leave his tribe. Do /disband to delete your tribe");
             return;
         }
         // Remove tribe from PlayerData and player from TribeData
         PlayerData playerData = PlayerData.player_data_hashmap.get(player.getUniqueId());
         playerData.getTribes().remove(tribeData.getTribeID());
         tribeData.getMembers().remove(player.getUniqueId());
+        tribeData.getMemberIds().remove(player.getDisplayName().toLowerCase());
+        PlayerData.player_data_hashmap.put(player.getUniqueId(), playerData);
+        TribeData.tribe_hashmap.put(tribeData.getTribeID(), tribeData);
 
         player.sendMessage("You have left " + tribeData.getName());
     }

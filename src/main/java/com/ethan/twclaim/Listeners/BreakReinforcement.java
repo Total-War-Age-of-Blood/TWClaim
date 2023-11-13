@@ -108,8 +108,6 @@ public class BreakReinforcement implements Listener {
         }
         else if (player.getUniqueId().equals(owner)){
             // Check if block should drop reinforcement material
-            System.out.println(recoverMin);
-            System.out.println((float) breakCount/ (float) configReinforcement);
             if (100 - (((float) breakCount / (float) configReinforcement) * 100) >= (float) recoverMin){
                 ItemStack item = new ItemStack(Material.matchMaterial(material));
                 player.getWorld().dropItem(block.getLocation(), item);

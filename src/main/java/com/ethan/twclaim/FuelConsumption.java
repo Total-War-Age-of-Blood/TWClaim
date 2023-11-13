@@ -39,9 +39,14 @@ public class FuelConsumption extends BukkitRunnable {
                     }
                 }
                 // Add cost for having extenders
-                if (bastion.getExtenderChildren().size() > 0){
-                    fuelConsumption += bastion.getExtenderChildren().size() * TWClaim.getPlugin().getConfig().getInt("extender-cost");
+                if (bastion.getExtenderChildren() != null){
+                    if (!bastion.getExtenderChildren().isEmpty()){
+                        if (bastion.getExtenderChildren().size() > 0){
+                            fuelConsumption += bastion.getExtenderChildren().size() * TWClaim.getPlugin().getConfig().getInt("extender-cost");
+                        }
+                    }
                 }
+
                 // If players crossed through the area with surveillance active, add their cost to fuelConsumption.
                 ArrayList<UUID> surveillance = bastion.getUnderSurveillance();
                 if (surveillance != null){

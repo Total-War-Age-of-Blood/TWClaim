@@ -90,6 +90,7 @@ public final class TWClaim extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new ExtenderEvents(), this);
         Bukkit.getPluginManager().registerEvents(new ExtenderGUI(), this);
         Bukkit.getPluginManager().registerEvents(new Pistons(), this);
+        Bukkit.getPluginManager().registerEvents(new BigDoorsOpener(), this);
 
         // Plugin Commands
         getCommand("tribe").setExecutor(new TribeCommand(this));
