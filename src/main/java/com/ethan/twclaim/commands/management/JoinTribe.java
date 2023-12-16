@@ -32,7 +32,7 @@ public class JoinTribe {
         PlayerData.player_data_hashmap.put(player.getUniqueId(), playerData);
 
         // Message player and tribe owner
-        if (Bukkit.getPlayer(tribe.getLeader()) != null){Bukkit.getPlayer(tribe.getLeader()).sendMessage(player.getDisplayName() + "joined " + tribe.getName());}
+        if (Bukkit.getPlayer(tribe.getLeader()) != null){Bukkit.getPlayer(tribe.getLeader()).sendMessage(player.getDisplayName() + " joined " + tribe.getName());}
         player.sendMessage("Joined " + tribe.getName());
         return true;
     }
