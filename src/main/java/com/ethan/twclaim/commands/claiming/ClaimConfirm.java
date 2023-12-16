@@ -66,7 +66,6 @@ public class ClaimConfirm {
         // Iterate through materialCount to see if there are enough items of one material to claim the whole area.
         Inventory inventory = player.getInventory();
         HashMap<Material, Integer> selectedMaterials = new HashMap<>();
-        int reinforcement = 0;
         String materialType = "";
         boolean enough = false;
         for (Material material : materialCount.keySet()){
@@ -75,14 +74,13 @@ public class ClaimConfirm {
             if (count >= volume){
                 enough = true;
                 selectedMaterials.put(material, volume);
-                reinforcement = reinforcementTypes.get(material.toString().toLowerCase());
                 materialType = material.toString().toLowerCase();
                 // Iterate over stacks to remove the items until cost is paid
                 for (ItemStack item : inventory.getContents()){
                     if (item == null){continue;}
                     if (selectedMaterials.containsKey(item.getType())){
                         int amount = item.getAmount();
-                        if (amount >= volume){
+                        if (amount >= selectedMaterials.get(material)){
                             item.setAmount(amount - selectedMaterials.get(item.getType()));
                             break;
                         }

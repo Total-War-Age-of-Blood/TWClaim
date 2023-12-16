@@ -1,7 +1,10 @@
 name: TWClaim
 version: '${project.version}'
 main: com.ethan.twclaim.TWClaim
-api-version: 1.19
+api-version: 1.20
 description: A custom claiming plugin for Total War Age of Blood
 commands:
   tribe:
+softdepend:
+  - bigdoorsopener
+  - dynmap

@@ -20,16 +20,18 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.dynmap.DynmapCommonAPI;
+import org.dynmap.DynmapCommonAPIListener;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
 public final class TWClaim extends JavaPlugin {
-
     private BukkitAudiences adventure;
 
     public @NonNull BukkitAudiences adventure() {
@@ -43,7 +45,6 @@ public final class TWClaim extends JavaPlugin {
 
     private static Gson gson = new Gson();
     public static Gson getGson() {return gson;}
-
     @Override
     public void onLoad(){
         plugin = this;
@@ -91,6 +92,11 @@ public final class TWClaim extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new ExtenderGUI(), this);
         Bukkit.getPluginManager().registerEvents(new Pistons(), this);
         Bukkit.getPluginManager().registerEvents(new BigDoorsOpener(), this);
+
+        final Dynmap eventListener = new Dynmap();
+        DynmapCommonAPIListener.register(eventListener);
+        Bukkit.getPluginManager().registerEvents(eventListener, this);
+
 
         // Plugin Commands
         getCommand("tribe").setExecutor(new TribeCommand(this));

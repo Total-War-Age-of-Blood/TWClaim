@@ -5,6 +5,7 @@ import com.ethan.twclaim.data.Bastion;
 import com.ethan.twclaim.data.Extender;
 import com.ethan.twclaim.data.PlayerData;
 import com.ethan.twclaim.data.TribeData;
+import com.ethan.twclaim.events.BastionClaimEvent;
 import com.jeff_media.customblockdata.CustomBlockData;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -407,6 +408,16 @@ public class Util {
         // This key keeps track of the owning tribe
         NamespacedKey ownKey = getOwnKey();
         container.set(ownKey, PersistentDataType.STRING, playerData.getTarget().toString());
+        // If block is bastion, trigger bastionClaimEvent
+        if (isBastion(block)){
+            UUID uuid = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING));
+            Bastion bastion = Bastion.bastions.get(uuid);
+            Bukkit.getPluginManager().callEvent(new BastionClaimEvent(bastion));}
+    }
+
+    public static boolean isBastion(Block block){
+        PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
+        return container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING);
     }
 
     public static void convertToBreakCount(PersistentDataContainer container){

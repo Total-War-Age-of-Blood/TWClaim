@@ -76,6 +76,10 @@
             <id>eldonexus</id>
             <url>https://eldonexus.de/repository/maven-public/</url>
         </repository>
+        <repository>
+            <id>MikeRepo</id>
+            <url>https://repo.mikeprimm.com/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -99,13 +103,19 @@
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-platform-bukkit</artifactId>
-            <version>4.3.0</version>
+            <version>4.3.1</version>
         </dependency>
         <dependency>
             <groupId>nl.pim16aap2</groupId>
             <artifactId>BigDoors</artifactId>
             <version>0.1.8.43</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>us.dynmap</groupId>
+            <artifactId>dynmap-api</artifactId>
+            <version>3.4</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>
