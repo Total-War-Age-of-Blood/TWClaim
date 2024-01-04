@@ -1,9 +1,11 @@
 package com.ethan.twclaim.data;
 
 import com.ethan.twclaim.TWClaim;
+import com.ethan.twclaim.events.BastionChangeFuelStateEvent;
 import com.ethan.twclaim.util.Util;
 import com.google.common.reflect.TypeToken;
 import com.jeff_media.customblockdata.CustomBlockData;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -60,6 +62,7 @@ public class Bastion implements Listener {
     String name;
     ArrayList<UUID> extenderChildren = new ArrayList<>();
     long timestamp;
+    int color = Util.randomHexColor();
 
     public Bastion(UUID uuid, int[] coordinates, int radius, ArrayList underSurveillance, UUID worldId, long timestamp){
         this.uuid = uuid;
@@ -186,6 +189,8 @@ public class Bastion implements Listener {
         ArrayList<HashMap<String, Integer>> fuels = (ArrayList<HashMap<String, Integer>>) TWClaim.getPlugin().getConfig().get("bastion-fuel");
         int totalAddedFuel = 0;
         int slot = 0;
+        Block bastionBlock = playerLastBastion.get(player.getUniqueId());
+        PersistentDataContainer container = new CustomBlockData(bastionBlock, TWClaim.getPlugin());
         for (ItemStack item : gui.getContents()){
             if (slot == 18 || slot == 26 || item == null){
                 slot++;
@@ -196,8 +201,6 @@ public class Bastion implements Listener {
                     // If item is fuel type, add fuel value to bastion PDC and remove ItemStack from inventory
                     if (!material.equalsIgnoreCase(item.getType().toString())){continue;}
                     int fuelAmount = hash.get(material) * item.getAmount();
-                    Block bastion = playerLastBastion.get(player.getUniqueId());
-                    PersistentDataContainer container = new CustomBlockData(bastion, TWClaim.getPlugin());
                     if (container.get(new NamespacedKey(TWClaim.getPlugin(), "fuel"), PersistentDataType.INTEGER) == null){return;}
                     int bastionFuel = container.get(new NamespacedKey(TWClaim.getPlugin(), "fuel"), PersistentDataType.INTEGER);
                     bastionFuel = bastionFuel + fuelAmount;
@@ -210,6 +213,11 @@ public class Bastion implements Listener {
             slot++;
         }
         player.sendMessage(ChatColor.GREEN + "Added " + totalAddedFuel + " Fuel");
+        if (totalAddedFuel > 0){
+            UUID bastionID = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING));
+            Bastion bastion = Bastion.bastions.get(bastionID);
+            Bukkit.getPluginManager().callEvent(new BastionChangeFuelStateEvent(bastion, true));
+        }
     }
 
     public static void bastionFuelClose(Inventory gui, Player player){
@@ -297,5 +305,13 @@ public class Bastion implements Listener {
 
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int color) {
+        this.color = color;
     }
 }

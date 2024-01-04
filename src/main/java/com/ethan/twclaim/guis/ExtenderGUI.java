@@ -4,6 +4,7 @@ import com.ethan.twclaim.TWClaim;
 import com.ethan.twclaim.data.Bastion;
 import com.ethan.twclaim.data.Extender;
 import com.ethan.twclaim.data.TribeData;
+import com.ethan.twclaim.events.ExtenderChangeFatherEvent;
 import com.ethan.twclaim.events.OpenGUI;
 import com.ethan.twclaim.util.Util;
 import com.jeff_media.customblockdata.CustomBlockData;
@@ -175,12 +176,14 @@ public class ExtenderGUI implements Listener {
         Extender extender = Extender.extenders.get(extenderUUID);
 
         // Check if there is a previous father bastion that needs to be removed
+        Bastion oldFather;
         if (extender.getFatherBastion() != null){
-            Bastion oldFather = Bastion.bastions.get(extender.getFatherBastion());
-            oldFather.getExtenderChildren().remove(extenderUUID);
-        }
+            oldFather = Bastion.bastions.get(extender.getFatherBastion());
+            if(oldFather != null){oldFather.getExtenderChildren().remove(extenderUUID);}
+        } else{oldFather = null;}
 
         Bastion bastion = Bastion.bastions.get(bastionUUID);
+        Bukkit.getPluginManager().callEvent(new ExtenderChangeFatherEvent(extender, oldFather, bastion));
         List<UUID> extenderChildren = bastion.getExtenderChildren();
         extender.setFatherBastion(bastionUUID);
         extenderChildren.add(extenderUUID);

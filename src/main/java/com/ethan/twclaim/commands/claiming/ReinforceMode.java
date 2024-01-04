@@ -13,6 +13,10 @@ public class ReinforceMode {
         // Search for tribe in tribe hashmap return error if not found
         if (Util.checkTribe(tribeName.toLowerCase())){player.sendMessage(ChatColor.RED + "This tribe does not exist!"); return false;}
         TribeData tribe = TribeData.tribe_hashmap.get(TribeData.tribeConversionHashmap.get(tribeName.toLowerCase()));
+        if (!Util.isInTribe(player.getUniqueId(), tribe.getTribeID())){
+            player.sendMessage(ChatColor.RED + "Not a member of " + tribe.getName());
+            return false;
+        }
         // Check for permission to reinforce blocks
         String permGroup = tribe.getMembers().get(player.getUniqueId());
         String perms = tribe.getPermGroups().get(permGroup);

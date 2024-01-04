@@ -53,7 +53,8 @@ public class Extender {
         coordinates[0] = block.getX();
         coordinates[1] = block.getY();
         coordinates[2] = block.getZ();
-        Extender extender = new Extender(uuid, coordinates, System.currentTimeMillis());
+        UUID worldID = block.getWorld().getUID();
+        Extender extender = new Extender(uuid, coordinates, System.currentTimeMillis(), worldID);
         extenders.put(uuid, extender);
 
         PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
@@ -66,11 +67,13 @@ public class Extender {
     int radius = TWClaim.getPlugin().getConfig().getInt("extender-range");
     int[] coordinates;
     long timestamp;
+    UUID worldID;
 
-    public Extender(UUID uuid, int[] coordinates, long timestamp){
+    public Extender(UUID uuid, int[] coordinates, long timestamp, UUID worldID){
         this.uuid = uuid;
         this.coordinates = coordinates;
         this.timestamp = timestamp;
+        this.worldID = worldID;
     }
 
     public UUID getUuid() {
@@ -119,5 +122,13 @@ public class Extender {
 
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public UUID getWorldID() {
+        return worldID;
+    }
+
+    public void setWorldID(UUID worldID) {
+        this.worldID = worldID;
     }
 }

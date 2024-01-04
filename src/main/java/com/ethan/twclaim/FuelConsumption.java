@@ -1,6 +1,7 @@
 package com.ethan.twclaim;
 
 import com.ethan.twclaim.data.Bastion;
+import com.ethan.twclaim.events.BastionChangeFuelStateEvent;
 import com.jeff_media.customblockdata.CustomBlockData;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -63,6 +64,7 @@ public class FuelConsumption extends BukkitRunnable {
                     bastion.setUnderSurveillance(surveillance);
                 }
                 if (fuel - fuelConsumption <= 0){
+                    Bukkit.getPluginManager().callEvent(new BastionChangeFuelStateEvent(bastion, false));
                     container.set(new NamespacedKey(TWClaim.getPlugin(), "fuel"), PersistentDataType.INTEGER, 0);
                     if (container.get(new NamespacedKey(TWClaim.getPlugin(), "exp-storage"), PersistentDataType.INTEGER) != 0){
                         int storedExp = container.get(new NamespacedKey(TWClaim.getPlugin(), "exp-amount"), PersistentDataType.INTEGER);

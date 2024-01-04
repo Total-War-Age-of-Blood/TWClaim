@@ -13,6 +13,7 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.Inventory;
@@ -58,7 +59,7 @@ public class Fortify implements Listener {
             if (item == null){continue;}
             if (!reinforcements.containsKey(item.getType().toString().toLowerCase())){continue;}
             // If there is a match, add reinforcement to the block and delete reinforcement item from inventory
-            Util.addReinforcement(block, item, playerData);
+            Util.addReinforcement(block, item, playerData, e.getItemInHand());
             // Remove material from inventory
             item.setAmount(item.getAmount() - 1);
             // Effects

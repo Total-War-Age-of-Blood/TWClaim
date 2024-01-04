@@ -6,6 +6,8 @@ import com.ethan.twclaim.data.Extender;
 import com.ethan.twclaim.data.PlayerData;
 import com.ethan.twclaim.data.TribeData;
 import com.ethan.twclaim.events.BastionClaimEvent;
+import com.ethan.twclaim.events.BastionDestroyEvent;
+import com.ethan.twclaim.events.ExtenderDestroyEvent;
 import com.jeff_media.customblockdata.CustomBlockData;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -22,6 +24,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+import javax.naming.Name;
 import java.util.*;
 
 public class Util {
@@ -43,12 +46,34 @@ public class Util {
         container.remove(key);
         container.remove(ownKey);
         container.remove(breakCount);
-        if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING) && !container.has(new NamespacedKey(TWClaim.getPlugin(), "ExtenderUUID"), PersistentDataType.STRING)){
-            return false;
+        if (!isBastion(container) && !isExtender(container)){return false;}
+        // Remove bastion or extender from PDC
+        if (isBastion(container)){
+            UUID bastionID = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING));
+            Bastion bastion = Bastion.bastions.get(bastionID);
+            if (bastion != null){
+                Bukkit.getPluginManager().callEvent(new BastionDestroyEvent(bastion));
+                Bastion.bastions.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)));
+                List<UUID> children = bastion.getExtenderChildren();
+                for (UUID child : children){
+                    Extender extender = Extender.extenders.get(child);
+                    extender.setFatherBastion(null);
+                }
+            }
         }
-        // Remove bastion from PDC
-        if (container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){Bastion.bastions.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)));}
-        if (container.has(new NamespacedKey(TWClaim.getPlugin(), "ExtenderUUID"), PersistentDataType.STRING)){Extender.extenders.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "ExtenderUUID"), PersistentDataType.STRING)));}
+        if (isExtender(container)){
+            UUID extenderID = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "ExtenderUUID"), PersistentDataType.STRING));
+            Extender extender = Extender.extenders.get(extenderID);
+            if (extender != null){Bukkit.getPluginManager().callEvent(new ExtenderDestroyEvent(extender));}
+            Extender.extenders.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "ExtenderUUID"), PersistentDataType.STRING)));
+            UUID bastionID = extender.getFatherBastion();
+            if (bastionID != null){
+                Bastion bastion = Bastion.bastions.get(bastionID);
+                ArrayList<UUID> children = bastion.getExtenderChildren();
+                children.remove(extenderID);
+                bastion.setExtenderChildren(children);
+            }
+        }
         container.remove(new NamespacedKey(TWClaim.getPlugin(), "bastion"));
         container.remove(new NamespacedKey(TWClaim.getPlugin(), "ExtenderUUID"));
         container.remove(new NamespacedKey(TWClaim.getPlugin(), "fuel"));
@@ -64,74 +89,71 @@ public class Util {
         return true;
     }
     public static void removeReinforcement(PersistentDataContainer container, BlockBreakEvent e){
-        boolean isBastion = removeKeys(container);
-        if (!isBastion){return;}
-        // Make a proper bastion drop (the lore disappears when the player mines one normally.)
-        ItemStack bastion = bastionItem();
+        if (!isBastion(container) && !isExtender(container)){
+            removeKeys(container);
+            return;
+        }
+        // Make a proper bastion or extender drop (the lore disappears when the player mines one normally.)
+        ItemStack drop = bastionOrExtender(container);
         e.setDropItems(false);
-        e.getBlock().getWorld().dropItem(e.getBlock().getLocation(), bastion);
-
+        e.getBlock().getWorld().dropItem(e.getBlock().getLocation(), drop);
+        removeKeys(container);
     }
 
     public static void removeReinforcement(PersistentDataContainer container, BlockExplodeEvent e){
-        removeKeys(container);
-        if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){
+        if (!isBastion(container) && !isExtender(container)){
+            removeKeys(container);
             return;
         }
-        UUID bastionID = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING));
-        Bastion bastion = Bastion.bastions.get(bastionID);
-        Block bastionBlock = Bukkit.getWorld(bastion.getWorldId()).getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
-        e.blockList().remove(bastionBlock);
-        bastionBlock.setType(Material.AIR);
-        e.blockList().add(bastionBlock);
+        if (isBastion(container)){
+            UUID bastionID = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING));
+            Bastion bastion = Bastion.bastions.get(bastionID);
+            Block bastionBlock = Bukkit.getWorld(bastion.getWorldId()).getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
+            e.blockList().remove(bastionBlock);
+            bastionBlock.setType(Material.AIR);
+            e.blockList().add(bastionBlock);
+        } else{
+            UUID extenderID = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "ExtenderUUID"), PersistentDataType.STRING));
+            Extender extender = Extender.extenders.get(extenderID);
+            Block extenderBlock = Bukkit.getWorld(extender.getWorldID()).getBlockAt(extender.getCoordinates()[0], extender.getCoordinates()[1], extender.getCoordinates()[2]);
+            e.blockList().remove(extenderBlock);
+            extenderBlock.setType(Material.AIR);
+            e.blockList().add(extenderBlock);
+        }
 
+        // Make a proper bastion drop (the lore disappears when the player mines one normally.)
+        ItemStack drop = bastionOrExtender(container);
+        e.getBlock().getWorld().dropItem(e.getBlock().getLocation(), drop);
 
         // Remove bastion from PDC
         Bastion.bastions.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "bastion"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "fuel"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "fuel-consumption"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "anti-teleport"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "anti-flight"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "surveillance"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "range"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "exp-storage"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "exp-amount"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "range-distance"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "active-upgrades"));
-
-
-        // Make a proper bastion drop (the lore disappears when the player mines one normally.)
-        ItemStack bastionItem = bastionItem();
-        e.getBlock().getWorld().dropItem(e.getBlock().getLocation(), bastionItem);
+        removeKeys(container);
     }
 
     public static void removeReinforcement(PersistentDataContainer container, EntityExplodeEvent e){
-        removeKeys(container);
-        if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){
+        if (!isBastion(container) && !isExtender(container)){
+            removeKeys(container);
             return;
         }
-        UUID bastionID = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING));
-        Bastion bastion = Bastion.bastions.get(bastionID);
-        Block bastionBlock = Bukkit.getWorld(bastion.getWorldId()).getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
-        e.blockList().remove(bastionBlock);
-        bastionBlock.setType(Material.AIR);
-        e.blockList().add(bastionBlock);
+        if (isBastion(container)){
+            UUID bastionID = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING));
+            Bastion bastion = Bastion.bastions.get(bastionID);
+            Block bastionBlock = Bukkit.getWorld(bastion.getWorldId()).getBlockAt(bastion.getCoordinates()[0], bastion.getCoordinates()[1], bastion.getCoordinates()[2]);
+            e.blockList().remove(bastionBlock);
+            bastionBlock.setType(Material.AIR);
+            e.blockList().add(bastionBlock);
+        } else{
+            UUID extenderID = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "ExtenderUUID"), PersistentDataType.STRING));
+            Extender extender = Extender.extenders.get(extenderID);
+            Block extenderBlock = Bukkit.getWorld(extender.getWorldID()).getBlockAt(extender.getCoordinates()[0], extender.getCoordinates()[1], extender.getCoordinates()[2]);
+            e.blockList().remove(extenderBlock);
+            extenderBlock.setType(Material.AIR);
+            e.blockList().add(extenderBlock);
+        }
 
         // Remove bastion from PDC
         Bastion.bastions.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "bastion"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "fuel"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "fuel-consumption"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "anti-teleport"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "anti-flight"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "surveillance"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "range"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "exp-storage"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "exp-amount"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "range-distance"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "active-upgrades"));
-
+        removeKeys(container);
 
         // Make a proper bastion drop (the lore disappears when the player mines one normally.)
         ItemStack bastionItem = bastionItem();
@@ -139,23 +161,17 @@ public class Util {
     }
 
     public static void removeReinforcement(PersistentDataContainer container, BlockBurnEvent e){
-        removeKeys(container);
-        if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){
+        if (!isBastion(container) && isExtender(container)){
+            removeKeys(container);
             return;
         }
         // Remove bastion from PDC
-        Bastion.bastions.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "bastion"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "fuel"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "fuel-consumption"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "anti-teleport"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "anti-flight"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "surveillance"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "range"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "exp-storage"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "exp-amount"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "range-distance"));
-        container.remove(new NamespacedKey(TWClaim.getPlugin(), "active-upgrades"));
+        if (isBastion(container)){
+            Bastion.bastions.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)));
+        } else{
+            Extender.extenders.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "ExtenderUUID"), PersistentDataType.STRING)));
+        }
+        removeKeys(container);
     }
 
     public static boolean isTribe(UUID uuid){
@@ -332,14 +348,14 @@ public class Util {
         return bastion;
     }
 
-    public static ItemStack bastionRangeExtenderItem(){
+    public static ItemStack bastionRangeExtenderItem(int amount){
         ItemStack bastionRangeExtender = new ItemStack(Material.BEACON);
         ItemMeta meta = bastionRangeExtender.getItemMeta();
         meta.setDisplayName(ChatColor.GOLD + "Range Extender");
         meta.setLore(Arrays.asList(ChatColor.GOLD + "Extends range of bastion by 30 blocks from where it is placed. Farther from bastion = higher fuel consumption."));
         meta.getPersistentDataContainer().set(new NamespacedKey(TWClaim.getPlugin(), "extender"), PersistentDataType.STRING, "yes");
         bastionRangeExtender.setItemMeta(meta);
-        bastionRangeExtender.setAmount(4);
+        bastionRangeExtender.setAmount(amount);
         return bastionRangeExtender;
     }
 
@@ -412,16 +428,62 @@ public class Util {
         if (isBastion(block)){
             UUID uuid = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING));
             Bastion bastion = Bastion.bastions.get(uuid);
+            if (bastion.getName() == null){Bastion.nameBastion(bastion, UUID.fromString(container.get(ownKey, PersistentDataType.STRING)));}
             Bukkit.getPluginManager().callEvent(new BastionClaimEvent(bastion));}
     }
+
+    public static void addReinforcement(Block block, ItemStack item, PlayerData playerData, ItemStack heldItem){
+        PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
+        NamespacedKey materialKey = getMaterialKey();
+        container.set(materialKey, PersistentDataType.STRING, item.getType().toString().toLowerCase());
+        // Keeps track of how much damage has been done to the block
+        NamespacedKey breakCount = getBreakCount();
+        container.set(breakCount, PersistentDataType.INTEGER, 0);
+        // This key keeps track of the owning tribe
+        NamespacedKey ownKey = getOwnKey();
+        container.set(ownKey, PersistentDataType.STRING, playerData.getTarget().toString());
+        // If block is bastion, trigger bastionClaimEvent
+        if (heldItem.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){
+            UUID uuid = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING));
+            Bastion bastion = Bastion.bastions.get(uuid);
+            if (bastion.getName() == null){Bastion.nameBastion(bastion, UUID.fromString(container.get(ownKey, PersistentDataType.STRING)));}
+            Bukkit.getPluginManager().callEvent(new BastionClaimEvent(bastion));}
+    }
+
 
     public static boolean isBastion(Block block){
         PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
         return container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING);
     }
+    public static boolean isBastion(PersistentDataContainer container){
+        return container.has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING);
+    }
+
+    public static boolean isExtender(Block block){
+        PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
+        return container.has(new NamespacedKey(TWClaim.getPlugin(), "ExtenderUUID"), PersistentDataType.STRING);
+    }
+    public static boolean isExtender(PersistentDataContainer container){
+        return container.has(new NamespacedKey(TWClaim.getPlugin(), "ExtenderUUID"), PersistentDataType.STRING);
+    }
 
     public static void convertToBreakCount(PersistentDataContainer container){
         container.remove(Util.getKey());
         container.set(Util.getBreakCount(), PersistentDataType.INTEGER, 0);
+    }
+
+    public static int randomHexColor(){
+        Random random = new Random();
+        return random.nextInt(0xffffff + 1);
+    }
+
+    public static ItemStack bastionOrExtender(PersistentDataContainer container){
+        ItemStack drop;
+        if (isBastion(container)){
+            drop = bastionItem();
+        } else{
+            drop = bastionRangeExtenderItem(1);
+        }
+        return drop;
     }
 }

@@ -69,7 +69,7 @@ public final class TWClaim extends JavaPlugin {
         bastionRecipe.setIngredient('A', Material.COAL_BLOCK);
         Bukkit.addRecipe(bastionRecipe);
 
-        ItemStack bastionRangeExtender = Util.bastionRangeExtenderItem();
+        ItemStack bastionRangeExtender = Util.bastionRangeExtenderItem(4);
         ShapedRecipe extenderRecipe = new ShapedRecipe(new NamespacedKey(this, "extender"), bastionRangeExtender);
         extenderRecipe.shape("AAA", "AEA", "AAA");
         extenderRecipe.setIngredient('A', Material.ENDER_EYE);
