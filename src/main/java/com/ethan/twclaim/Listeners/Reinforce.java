@@ -7,7 +7,6 @@ import com.ethan.twclaim.util.Util;
 import com.ethan.twclaim.data.TribeData;
 import com.jeff_media.customblockdata.CustomBlockData;
 import org.bukkit.ChatColor;
-import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -20,7 +19,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -39,6 +37,7 @@ public class Reinforce implements Listener {
         // Check that player is in reinforcement mode
         PlayerData playerData = PlayerData.player_data_hashmap.get(player.getUniqueId());
         if (!playerData.getMode().equalsIgnoreCase("Reinforce")){return;}
+
 
         Block block = e.getClickedBlock();
         // Not all blocks have persistent data containers, so we need to use the chunk's PDC.
@@ -69,13 +68,14 @@ public class Reinforce implements Listener {
                 }
             }
         }
-
+        System.out.println("ReinforceAmount: " + item.getAmount());
         // Validate material
         HashMap<String, Integer> reinforcements = Util.getReinforcementTypes();
         if (reinforcements.containsKey(itemName)){
             Util.addReinforcement(block, item, playerData);
             item.setAmount(item.getAmount() - 1);
             player.getInventory().setItem(EquipmentSlot.HAND, item);
+            e.setCancelled(true);
         } else{
             player.sendMessage(ChatColor.RED + "Not a reinforcement material");
         }
