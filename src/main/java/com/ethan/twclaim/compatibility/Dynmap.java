@@ -1,11 +1,10 @@
-package com.ethan.twclaim.Listeners;
+package com.ethan.twclaim.compatibility;
 import com.ethan.twclaim.TWClaim;
 import com.ethan.twclaim.data.Bastion;
 import com.ethan.twclaim.data.Extender;
 import com.ethan.twclaim.events.*;
 import com.jeff_media.customblockdata.CustomBlockData;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;

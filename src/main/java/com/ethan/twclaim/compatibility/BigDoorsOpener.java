@@ -1,13 +1,11 @@
-package com.ethan.twclaim.Listeners;
+package com.ethan.twclaim.compatibility;
 
 
 import com.ethan.twclaim.TWClaim;
-import com.ethan.twclaim.data.PlayerData;
 import com.ethan.twclaim.data.TribeData;
 import com.ethan.twclaim.util.Util;
 import com.jeff_media.customblockdata.CustomBlockData;
 import nl.pim16aap2.bigDoors.Door;
-import nl.pim16aap2.bigDoors.events.DoorEventToggle;
 import nl.pim16aap2.bigDoors.events.DoorEventTogglePrepare;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
