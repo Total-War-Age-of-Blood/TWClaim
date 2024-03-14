@@ -11,7 +11,6 @@ import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -22,7 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class Bastion implements Listener {
+public class Bastion {
     public static HashMap<UUID, Bastion> bastions = new HashMap<>();
     // Tracks which bastion the player last interacted with. This allows gui's to interact with bastion objects.
     public static HashMap<UUID, Block> playerLastBastion = new HashMap<>();

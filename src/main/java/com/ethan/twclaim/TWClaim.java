@@ -5,10 +5,7 @@ import com.ethan.twclaim.commands.TabComplete;
 import com.ethan.twclaim.commands.TribeCommand;
 import com.ethan.twclaim.compatibility.BigDoorsOpener;
 import com.ethan.twclaim.compatibility.Dynmap;
-import com.ethan.twclaim.data.Bastion;
-import com.ethan.twclaim.data.Extender;
-import com.ethan.twclaim.data.PlayerData;
-import com.ethan.twclaim.data.TribeData;
+import com.ethan.twclaim.data.*;
 import com.ethan.twclaim.guis.BastionFuelGUI;
 import com.ethan.twclaim.guis.BastionGUI;
 import com.ethan.twclaim.guis.BastionUpgradeGUI;
@@ -92,6 +89,7 @@ public final class TWClaim extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new ExtenderGUI(), this);
         Bukkit.getPluginManager().registerEvents(new Pistons(), this);
         Bukkit.getPluginManager().registerEvents(new BigDoorsOpener(), this);
+        Bukkit.getPluginManager().registerEvents(new VaultListener(), this);
 
         final Dynmap eventListener = new Dynmap();
         DynmapCommonAPIListener.register(eventListener);
@@ -111,6 +109,7 @@ public final class TWClaim extends JavaPlugin {
         // Load Bastions & Extenders
         Bastion.loadBastions();
         Extender.loadExtenders();
+        Vault.loadVaults();
         // Load Tribes data from files
         TribeData tribe_hashmap = new TribeData();
         tribe_hashmap.loadTribes();
@@ -130,6 +129,7 @@ public final class TWClaim extends JavaPlugin {
         // Save Bastions and Extenders
         Bastion.saveBastions();
         Extender.saveExtenders();
+        Vault.saveVaults();
         // Save Player and Tribe Data
         for (PlayerData playerData : PlayerData.player_data_hashmap.values()){
             playerData.setMode("None");

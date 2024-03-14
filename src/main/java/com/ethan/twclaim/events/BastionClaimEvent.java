@@ -5,8 +5,6 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
-
 public class BastionClaimEvent extends Event {
     private static final HandlerList handlers = new HandlerList();
     @NotNull

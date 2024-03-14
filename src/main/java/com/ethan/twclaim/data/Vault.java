@@ -2,7 +2,6 @@ package com.ethan.twclaim.data;
 
 import com.ethan.twclaim.TWClaim;
 import com.google.common.reflect.TypeToken;
-import org.bukkit.event.Listener;
 
 import java.io.File;
 import java.io.FileReader;
@@ -11,10 +10,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class Vault implements Listener {
-    public static HashMap<UUID, Bastion> vaults = new HashMap<>();
-    public static void saveBastions() {
-        File bastionsFile = new File(TWClaim.getPlugin().getDataFolder(), "bastions.json");
+public class Vault {
+    public static HashMap<UUID, Vault> vaults = new HashMap<>();
+    public static void saveVaults() {
+        File bastionsFile = new File(TWClaim.getPlugin().getDataFolder(), "vaults.json");
         try {
             if (!bastionsFile.exists()){bastionsFile.createNewFile();}
             FileWriter bastionsWriter = new FileWriter(bastionsFile, false);
@@ -26,8 +25,8 @@ public class Vault implements Listener {
         }
     }
 
-    public static void loadBastions(){
-        File bastionsFile = new File(TWClaim.getPlugin().getDataFolder(), "bastions.json");
+    public static void loadVaults(){
+        File bastionsFile = new File(TWClaim.getPlugin().getDataFolder(), "vaults.json");
         try {
             if (!bastionsFile.exists()){bastionsFile.createNewFile();}
             FileReader bastionsReader = new FileReader(bastionsFile);
@@ -38,5 +37,40 @@ public class Vault implements Listener {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    UUID uuid;
+    int[] coordinates;
+    int[] signCoordinates;
+
+    public Vault(UUID uuid, int[] coordinates, int[] signCoordinates){
+        this.uuid = uuid;
+        this.coordinates = coordinates;
+        this.signCoordinates = signCoordinates;
+        vaults.put(uuid, this);
+    }
+
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
+    }
+
+    public int[] getCoordinates() {
+        return coordinates;
+    }
+
+    public void setCoordinates(int[] coordinates) {
+        this.coordinates = coordinates;
+    }
+
+    public int[] getSignCoordinates() {
+        return signCoordinates;
+    }
+
+    public void setSignCoordinates(int[] signCoordinates) {
+        this.signCoordinates = signCoordinates;
     }
 }
