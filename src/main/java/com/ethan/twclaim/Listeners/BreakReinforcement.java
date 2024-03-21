@@ -186,7 +186,7 @@ public class BreakReinforcement implements Listener {
             int explosionDamage = TWClaim.getPlugin().getConfig().getInt("explosion-damage");
             int configReinforcement = getReinforcementTypes().get(container.get(Util.getMaterialKey(), PersistentDataType.STRING));
             if (breakCount + explosionDamage > configReinforcement){
-                Util.removeReinforcement(container, e);
+                Util.removeReinforcement(block, container, e);
                 continue;
             }
             removeList.add(block);

@@ -30,13 +30,19 @@ public class Vault {
         try {
             if (!bastionsFile.exists()){bastionsFile.createNewFile();}
             FileReader bastionsReader = new FileReader(bastionsFile);
-            vaults = TWClaim.getGson().fromJson(bastionsReader, new TypeToken<HashMap<UUID, Bastion>>(){}.getType());
+            vaults = TWClaim.getGson().fromJson(bastionsReader, new TypeToken<HashMap<UUID, Vault>>(){}.getType());
             if (vaults == null){
                 vaults = new HashMap<>();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static void destroyVault(Vault vault) {
+        vaults.remove(vault.getUuid());
+        System.out.println("Vault Destroyed");
+        System.out.println(Vault.vaults.keySet());
     }
 
     UUID uuid;

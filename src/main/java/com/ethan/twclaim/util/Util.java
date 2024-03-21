@@ -1,10 +1,7 @@
 package com.ethan.twclaim.util;
 
 import com.ethan.twclaim.TWClaim;
-import com.ethan.twclaim.data.Bastion;
-import com.ethan.twclaim.data.Extender;
-import com.ethan.twclaim.data.PlayerData;
-import com.ethan.twclaim.data.TribeData;
+import com.ethan.twclaim.data.*;
 import com.ethan.twclaim.events.BastionClaimEvent;
 import com.ethan.twclaim.events.BastionDestroyEvent;
 import com.ethan.twclaim.events.ExtenderDestroyEvent;
@@ -24,7 +21,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import javax.naming.Name;
 import java.util.*;
 
 public class Util {
@@ -40,13 +36,13 @@ public class Util {
         return !tribeFound;
     }
 
-    public static boolean removeKeys(PersistentDataContainer container){
+    public static void removeKeys(PersistentDataContainer container){
         // Remove PDCs from block
         container.remove(materialKey);
         container.remove(key);
         container.remove(ownKey);
         container.remove(breakCount);
-        if (!isBastion(container) && !isExtender(container)){return false;}
+        if (!isBastion(container) && !isExtender(container)){return;}
         // Remove bastion or extender from PDC
         if (isBastion(container)){
             UUID bastionID = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING));
@@ -86,22 +82,37 @@ public class Util {
         container.remove(new NamespacedKey(TWClaim.getPlugin(), "exp-amount"));
         container.remove(new NamespacedKey(TWClaim.getPlugin(), "range-distance"));
         container.remove(new NamespacedKey(TWClaim.getPlugin(), "active-upgrades"));
-        return true;
     }
     public static void removeReinforcement(PersistentDataContainer container, BlockBreakEvent e){
+        Block block = e.getBlock();
         if (!isBastion(container) && !isExtender(container)){
+            // TODO Checking if block is a vault always happens when removeKeys fires,
+            //  so maybe it should be incorporated into removeKeys
+            if (isVault(block) != null){
+                Vault vault = isVault(block);
+                Vault.destroyVault(vault);
+            }
             removeKeys(container);
             return;
         }
         // Make a proper bastion or extender drop (the lore disappears when the player mines one normally.)
         ItemStack drop = bastionOrExtender(container);
         e.setDropItems(false);
-        e.getBlock().getWorld().dropItem(e.getBlock().getLocation(), drop);
+        block.getWorld().dropItem(e.getBlock().getLocation(), drop);
+        if (isVault(block) != null){
+            Vault vault = isVault(block);
+            Vault.destroyVault(vault);
+        }
         removeKeys(container);
     }
 
     public static void removeReinforcement(PersistentDataContainer container, BlockExplodeEvent e){
+        Block block = e.getBlock();
         if (!isBastion(container) && !isExtender(container)){
+            if (isVault(block) != null){
+                Vault vault = isVault(block);
+                Vault.destroyVault(vault);
+            }
             removeKeys(container);
             return;
         }
@@ -123,15 +134,23 @@ public class Util {
 
         // Make a proper bastion drop (the lore disappears when the player mines one normally.)
         ItemStack drop = bastionOrExtender(container);
-        e.getBlock().getWorld().dropItem(e.getBlock().getLocation(), drop);
+        block.getWorld().dropItem(e.getBlock().getLocation(), drop);
 
         // Remove bastion from PDC
         Bastion.bastions.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)));
+        if (isVault(block) != null){
+            Vault vault = isVault(block);
+            Vault.destroyVault(vault);
+        }
         removeKeys(container);
     }
 
-    public static void removeReinforcement(PersistentDataContainer container, EntityExplodeEvent e){
+    public static void removeReinforcement(Block block, PersistentDataContainer container, EntityExplodeEvent e){
         if (!isBastion(container) && !isExtender(container)){
+            if (isVault(block) != null){
+                Vault vault = isVault(block);
+                Vault.destroyVault(vault);
+            }
             removeKeys(container);
             return;
         }
@@ -153,6 +172,10 @@ public class Util {
 
         // Remove bastion from PDC
         Bastion.bastions.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)));
+        if (isVault(block) != null){
+            Vault vault = isVault(block);
+            Vault.destroyVault(vault);
+        }
         removeKeys(container);
 
         // Make a proper bastion drop (the lore disappears when the player mines one normally.)
@@ -161,7 +184,12 @@ public class Util {
     }
 
     public static void removeReinforcement(PersistentDataContainer container, BlockBurnEvent e){
+        Block block = e.getBlock();
         if (!isBastion(container) && isExtender(container)){
+            if (isVault(block) != null){
+                Vault vault = isVault(block);
+                Vault.destroyVault(vault);
+            }
             removeKeys(container);
             return;
         }
@@ -170,6 +198,10 @@ public class Util {
             Bastion.bastions.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)));
         } else{
             Extender.extenders.remove(UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "ExtenderUUID"), PersistentDataType.STRING)));
+        }
+        if (isVault(block) != null){
+            Vault vault = isVault(block);
+            Vault.destroyVault(vault);
         }
         removeKeys(container);
     }
@@ -485,5 +517,15 @@ public class Util {
             drop = bastionRangeExtenderItem(1);
         }
         return drop;
+    }
+
+    public static Vault isVault(Block block){
+        int[] coordinates = new int[]{block.getX(), block.getY(), block.getZ()};
+        for (Vault vault : Vault.vaults.values()){
+            if (Arrays.equals(vault.getCoordinates(), coordinates) || Arrays.equals(vault.getSignCoordinates(), coordinates)){
+                return vault;
+            }
+        }
+        return null;
     }
 }

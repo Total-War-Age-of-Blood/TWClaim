@@ -7,9 +7,9 @@ import com.ethan.twclaim.util.Util;
 import com.jeff_media.customblockdata.CustomBlockData;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.DoubleChest;
-import org.bukkit.block.data.type.Chest;
 import org.bukkit.block.data.type.WallSign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -29,16 +29,24 @@ public class VaultListener implements Listener {
     * 3. Check if the player has switch perms on the chest
     * 4. If everything checks out, create vault */
 
-    // TODO check if there is already a vault at the block when the sign is changed.
-    // TODO if the sign on an existing vault gets changed to something not [vault], destroy the vault
     @EventHandler
     public void changeSignEvent(SignChangeEvent event){
-        String line = event.getLine(0);
-        if (line == null){return;}
-        if (!line.equalsIgnoreCase("[vault]")){return;}
-
         Player player = event.getPlayer();
         Block block = event.getBlock();
+
+        String line = event.getLine(0);
+        if (line == null){return;}
+        if (!line.equalsIgnoreCase("[vault]")){
+            for (Vault vault : Vault.vaults.values()){
+                int[] signCoordinates = vault.getSignCoordinates();
+                if (Arrays.equals(signCoordinates, new int[]{block.getX(), block.getY(), block.getZ()})){
+                    Vault.destroyVault(vault);
+                    player.sendMessage(ChatColor.RED + "Vault Destroyed");
+                    block.getWorld().playSound(block.getLocation(), Sound.BLOCK_ANVIL_PLACE, 0.5f, 2.0f);
+                }
+            }
+            return;
+        }
 
         if (!(block.getState().getBlockData() instanceof WallSign)){
             System.out.println("Not a wall sign.");
@@ -105,6 +113,6 @@ public class VaultListener implements Listener {
         }
         Vault vault = new Vault(UUID.randomUUID(), new int[]{attachedBlock.getX(), attachedBlock.getY(), attachedBlock.getZ()},
                 new int[]{block.getX(), block.getY(), block.getZ()});
-        System.out.println("Vault Created");
+        player.sendMessage("Vault Created");
     }
 }

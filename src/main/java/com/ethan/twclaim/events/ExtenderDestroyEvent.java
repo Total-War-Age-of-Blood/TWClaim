@@ -1,6 +1,5 @@
 package com.ethan.twclaim.events;
 
-import com.ethan.twclaim.data.Bastion;
 import com.ethan.twclaim.data.Extender;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
