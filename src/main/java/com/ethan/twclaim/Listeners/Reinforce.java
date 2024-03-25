@@ -3,10 +3,13 @@ package com.ethan.twclaim.Listeners;
 import com.ethan.twclaim.TWClaim;
 import com.ethan.twclaim.data.Bastion;
 import com.ethan.twclaim.data.PlayerData;
+import com.ethan.twclaim.data.Vault;
 import com.ethan.twclaim.util.Util;
 import com.ethan.twclaim.data.TribeData;
 import com.jeff_media.customblockdata.CustomBlockData;
 import org.bukkit.ChatColor;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -26,14 +29,13 @@ public class Reinforce implements Listener {
     @EventHandler
     public void onRightClick(PlayerInteractEvent e){
         // Cancel if event is firing for left click.
-        if (e.getHand() == null || e.getItem() == null){return;}
+        if (e.getHand() == null){return;}
         if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK)){return;}
 
         // Make sure player was interacting with a block
         if (e.getClickedBlock() == null){return;}
         Player player = e.getPlayer();
-        ItemStack item = player.getInventory().getItemInMainHand();
-        String itemName = item.getType().toString().toLowerCase();
+
         // Check that player is in reinforcement mode
         PlayerData playerData = PlayerData.player_data_hashmap.get(player.getUniqueId());
         if (!playerData.getMode().equalsIgnoreCase("Reinforce")){return;}
@@ -44,11 +46,7 @@ public class Reinforce implements Listener {
         // To make this easier, we will use Jeff's Custom Block Data library
         // https://github.com/JEFF-Media-GbR/CustomBlockData
         final PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
-        // If the block has already been reinforced, prevent the player from reinforcing it again.
-        if (container.has(Util.getKey(), PersistentDataType.INTEGER) || container.has(Util.getBreakCount(), PersistentDataType.INTEGER)){
-            player.sendMessage(ChatColor.RED + "Block is already reinforced");
-            return;
-        }
+
         // Check block is not in range of a foreign bastion that has fuel
         Bastion bastion = Bastion.inClaimRange(block.getLocation());
         if (bastion != null && BastionEvents.hasFuel(bastion)){
@@ -68,16 +66,57 @@ public class Reinforce implements Listener {
                 }
             }
         }
-        System.out.println("ReinforceAmount: " + item.getAmount());
-        // Validate material
-        HashMap<String, Integer> reinforcements = Util.getReinforcementTypes();
-        if (reinforcements.containsKey(itemName)){
-            Util.addReinforcement(block, item, playerData, false);
+
+        if (e.getItem() == null){
+            if (container.has(Util.getKey(), PersistentDataType.INTEGER) || container.has(Util.getBreakCount(), PersistentDataType.INTEGER)){return;}
+
+            // Check vaults for valid reinforcement
+            ItemStack item;
+            ItemStack vaultItem = Vault.checkVaults(player);
+            if (vaultItem == null){
+                ItemStack inventoryItem = Util.findReinforcement(player.getInventory());
+                if (inventoryItem == null){
+                    // If no valid materials in inventory, send error message
+                    player.sendMessage(ChatColor.RED + "No valid reinforcement materials.");
+                    e.setCancelled(true);
+                    return;
+                } else {
+                    item = inventoryItem;
+                    // If there is a match, add reinforcement to the block and delete reinforcement item from inventory
+                    Util.addReinforcement(block, item, playerData, false);
+                }
+            } else {
+                item = vaultItem;
+                System.out.println("Using item from vault: " + vaultItem.getItemMeta().getDisplayName());
+                Util.addReinforcement(block, item, playerData, false);
+            }
+
+            // Remove material from inventory
             item.setAmount(item.getAmount() - 1);
-            player.getInventory().setItem(EquipmentSlot.HAND, item);
-            e.setCancelled(true);
+            // Effects
+            e.getPlayer().spawnParticle(Particle.ENCHANTMENT_TABLE, block.getLocation(), 20);
+            e.getPlayer().playSound(block.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 2);
         } else{
-            player.sendMessage(ChatColor.RED + "Not a reinforcement material");
+            ItemStack item = player.getInventory().getItemInMainHand();
+            String itemName = item.getType().toString().toLowerCase();
+
+            // If the block has already been reinforced, prevent the player from reinforcing it again.
+            if (container.has(Util.getKey(), PersistentDataType.INTEGER) || container.has(Util.getBreakCount(), PersistentDataType.INTEGER)){
+                player.sendMessage(ChatColor.RED + "Block is already reinforced");
+                return;
+            }
+            // Validate material
+            HashMap<String, Integer> reinforcements = Util.getReinforcementTypes();
+            if (reinforcements.containsKey(itemName)){
+                Util.addReinforcement(block, item, playerData, false);
+                item.setAmount(item.getAmount() - 1);
+                player.getInventory().setItem(EquipmentSlot.HAND, item);
+                e.setCancelled(true);
+                e.getPlayer().spawnParticle(Particle.ENCHANTMENT_TABLE, block.getLocation(), 20);
+                e.getPlayer().playSound(block.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 2);
+            } else{
+                player.sendMessage(ChatColor.RED + "Not a reinforcement material");
+            }
         }
     }
 
