@@ -72,7 +72,7 @@ public class Reinforce implements Listener {
         // Validate material
         HashMap<String, Integer> reinforcements = Util.getReinforcementTypes();
         if (reinforcements.containsKey(itemName)){
-            Util.addReinforcement(block, item, playerData);
+            Util.addReinforcement(block, item, playerData, false);
             item.setAmount(item.getAmount() - 1);
             player.getInventory().setItem(EquipmentSlot.HAND, item);
             e.setCancelled(true);

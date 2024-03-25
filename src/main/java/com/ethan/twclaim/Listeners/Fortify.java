@@ -4,6 +4,7 @@ import com.ethan.twclaim.TWClaim;
 import com.ethan.twclaim.data.Bastion;
 import com.ethan.twclaim.data.PlayerData;
 import com.ethan.twclaim.data.TribeData;
+import com.ethan.twclaim.data.Vault;
 import com.ethan.twclaim.util.Util;
 import com.jeff_media.customblockdata.CustomBlockData;
 import org.bukkit.ChatColor;
@@ -13,10 +14,8 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
@@ -53,22 +52,31 @@ public class Fortify implements Listener {
             }
         }
 
-        // Cycle through inventory for first ItemStack that matches a valid reinforcement
-        Inventory inventory = player.getInventory();
-        for (ItemStack item : inventory.getContents()){
-            if (item == null){continue;}
-            if (!reinforcements.containsKey(item.getType().toString().toLowerCase())){continue;}
-            // If there is a match, add reinforcement to the block and delete reinforcement item from inventory
-            Util.addReinforcement(block, item, playerData, e.getItemInHand());
-            // Remove material from inventory
-            item.setAmount(item.getAmount() - 1);
-            // Effects
-            e.getPlayer().spawnParticle(Particle.ENCHANTMENT_TABLE, e.getBlock().getLocation(), 20);
-            e.getPlayer().playSound(e.getBlock().getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 2);
-            return;
+        // Check vaults for valid reinforcement
+        ItemStack item;
+        ItemStack vaultItem = Vault.checkVaults(player);
+        if (vaultItem == null){
+            ItemStack inventoryItem = Util.findReinforcement(player.getInventory());
+            if (inventoryItem == null){
+                // If no valid materials in inventory, send error message
+                player.sendMessage(ChatColor.RED + "No valid reinforcement materials.");
+                e.setCancelled(true);
+                return;
+            } else {
+                item = inventoryItem;
+                // If there is a match, add reinforcement to the block and delete reinforcement item from inventory
+                Util.addReinforcement(block, item, playerData, e.getItemInHand(), false);
+            }
+        } else {
+            item = vaultItem;
+            System.out.println("Using item from vault: " + vaultItem.getItemMeta().getDisplayName());
+            Util.addReinforcement(block, item, playerData, e.getItemInHand(), true);
         }
-        // If no valid materials in inventory, send error message
-        player.sendMessage(ChatColor.RED + "No valid reinforcement materials.");
-        e.setCancelled(true);
+
+        // Remove material from inventory
+        item.setAmount(item.getAmount() - 1);
+        // Effects
+        e.getPlayer().spawnParticle(Particle.ENCHANTMENT_TABLE, e.getBlock().getLocation(), 20);
+        e.getPlayer().playSound(e.getBlock().getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 2);
     }
 }

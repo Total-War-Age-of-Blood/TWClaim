@@ -112,7 +112,8 @@ public class VaultListener implements Listener {
             }
         }
         Vault vault = new Vault(UUID.randomUUID(), new int[]{attachedBlock.getX(), attachedBlock.getY(), attachedBlock.getZ()},
-                new int[]{block.getX(), block.getY(), block.getZ()});
+                new int[]{block.getX(), block.getY(), block.getZ()}, UUID.fromString(container.get(Util.getOwnKey(), PersistentDataType.STRING)),
+                attachedBlock.getWorld().getUID());
         player.sendMessage("Vault Created");
     }
 }

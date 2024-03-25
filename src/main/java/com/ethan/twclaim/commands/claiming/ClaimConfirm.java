@@ -138,7 +138,7 @@ public class ClaimConfirm {
                                     matSelected = true;
                                 }
                             }
-                            Util.addReinforcement(block, item, playerData);
+                            Util.addReinforcement(block, item, playerData, false);
                         }
                         player.sendMessage(ChatColor.GREEN + "Area claimed");
                         return true;

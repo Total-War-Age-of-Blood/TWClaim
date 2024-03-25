@@ -3,6 +3,7 @@ package com.ethan.twclaim.Listeners;
 import com.ethan.twclaim.TWClaim;
 import com.ethan.twclaim.data.PlayerData;
 import com.ethan.twclaim.data.TribeData;
+import com.ethan.twclaim.data.Vault;
 import com.ethan.twclaim.util.Util;
 import com.jeff_media.customblockdata.CustomBlockData;
 import org.bukkit.*;
@@ -100,6 +101,8 @@ public class BreakReinforcement implements Listener {
                 // If it is above the percentage, drop the material as well as the block
                 if (100 - (breakCount / configReinforcement * 100) >= recoverMin){
                     ItemStack item = new ItemStack(Material.matchMaterial(material));
+                    // If material is from vault, send back to vault if possible.
+                    if (Vault.itemBackToVault(player, container, owner, item)){return false;}
                     player.getWorld().dropItem(block.getLocation(), item);
                 }
                 return false;
@@ -110,6 +113,8 @@ public class BreakReinforcement implements Listener {
             // Check if block should drop reinforcement material
             if (100 - (((float) breakCount / (float) configReinforcement) * 100) >= (float) recoverMin){
                 ItemStack item = new ItemStack(Material.matchMaterial(material));
+                // If material is from vault, send back to vault if possible.
+                if (Vault.itemBackToVault(player, container, owner, item)){return false;}
                 player.getWorld().dropItem(block.getLocation(), item);
             }
             return false;
