@@ -83,12 +83,12 @@ public class Reinforce implements Listener {
                 } else {
                     item = inventoryItem;
                     // If there is a match, add reinforcement to the block and delete reinforcement item from inventory
-                    Util.addReinforcement(block, item, playerData, false);
+                    Util.addReinforcement(block, item.getType(), playerData, false);
                 }
             } else {
                 item = vaultItem;
                 System.out.println("Using item from vault: " + vaultItem.getItemMeta().getDisplayName());
-                Util.addReinforcement(block, item, playerData, false);
+                Util.addReinforcement(block, item.getType(), playerData, false);
             }
 
             // Remove material from inventory
@@ -108,7 +108,7 @@ public class Reinforce implements Listener {
             // Validate material
             HashMap<String, Integer> reinforcements = Util.getReinforcementTypes();
             if (reinforcements.containsKey(itemName)){
-                Util.addReinforcement(block, item, playerData, false);
+                Util.addReinforcement(block, item.getType(), playerData, false);
                 item.setAmount(item.getAmount() - 1);
                 player.getInventory().setItem(EquipmentSlot.HAND, item);
                 e.setCancelled(true);

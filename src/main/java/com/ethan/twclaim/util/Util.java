@@ -449,10 +449,10 @@ public class Util {
     public static NamespacedKey getFromVault(){return fromVault;}
 
     // This will add the PDC keys to blocks that gain protection from any form of claiming
-    public static void addReinforcement(Block block, ItemStack item, PlayerData playerData, boolean fromVault){
+    public static void addReinforcement(Block block, Material material, PlayerData playerData, boolean fromVault){
         PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
         NamespacedKey materialKey = getMaterialKey();
-        container.set(materialKey, PersistentDataType.STRING, item.getType().toString().toLowerCase());
+        container.set(materialKey, PersistentDataType.STRING, material.toString().toLowerCase());
         // Keeps track of how much damage has been done to the block
         NamespacedKey breakCount = getBreakCount();
         container.set(breakCount, PersistentDataType.INTEGER, 0);

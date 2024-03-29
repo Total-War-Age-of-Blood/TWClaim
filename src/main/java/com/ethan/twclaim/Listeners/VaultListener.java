@@ -36,7 +36,7 @@ public class VaultListener implements Listener {
 
         String line = event.getLine(0);
         if (line == null){return;}
-        if (!line.equalsIgnoreCase("[vault]")){
+        if (!line.equalsIgnoreCase("[twvault]")){
             for (Vault vault : Vault.vaults.values()){
                 int[] signCoordinates = vault.getSignCoordinates();
                 if (Arrays.equals(signCoordinates, new int[]{block.getX(), block.getY(), block.getZ()})){
