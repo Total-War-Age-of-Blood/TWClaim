@@ -538,7 +538,6 @@ public class Util {
 
     public static ItemStack findReinforcement(Inventory inventory){
         HashMap<String, Integer> reinforcements = Util.getReinforcementTypes();
-        System.out.println(inventory.getContents());
         for (ItemStack item : inventory.getContents()){
             if (item == null){continue;}
             if (!reinforcements.containsKey(item.getType().toString().toLowerCase())){continue;}

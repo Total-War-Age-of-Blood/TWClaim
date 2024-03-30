@@ -160,7 +160,6 @@ public class ClaimConfirm {
     }
 
     public static LinkedHashMap<Material, Integer> getReinforcementMaterials(Player player, HashMap<String, Integer> reinforcementTypes){
-        System.out.println("Getting reinforcement materials");
         LinkedHashMap<Material, Integer> materialCount = new LinkedHashMap<>();
         List<Inventory> inventories = getRelevantInventories(player);
 
@@ -175,13 +174,10 @@ public class ClaimConfirm {
                 materialCount.put(item.getType(), item.getAmount());
             }
         }
-        System.out.println(materialCount.keySet());
-        System.out.println(materialCount.values());
         return materialCount;
     }
 
     public static List<Inventory> getRelevantInventories(Player player){
-        System.out.println("Getting relevant inventories");
         PlayerData playerData = PlayerData.player_data_hashmap.get(player.getUniqueId());
         Inventory playerInventory = player.getInventory();
         List<Inventory> inventories = new ArrayList<>();
@@ -198,13 +194,11 @@ public class ClaimConfirm {
     }
 
     public static String enoughForOne(int volume, HashMap<Material, Integer> materialCount){
-        System.out.println("Checking if enough for one");
         // Iterate through materialCount to see if there are enough items of one material to claim the whole area.
         String materialType = "No";
         for (Material material : materialCount.keySet()){
             int count = materialCount.get(material);
             if (count >= volume){
-                System.out.println("Count: " + count + " Greater than or equal to Volume: " + volume);
                 materialType = material.toString();
                 break;
             }
@@ -213,7 +207,6 @@ public class ClaimConfirm {
     }
 
     public static HashMap<Material, Integer> enoughForMultiple(int volume, HashMap<Material, Integer> materialCount){
-        System.out.println("Checking if enough for multiple");
         HashMap<Material, Integer> selectedMaterials = new HashMap<>();
         int count = 0;
         for (Material material : materialCount.keySet()) {
@@ -231,33 +224,24 @@ public class ClaimConfirm {
     }
 
     public static void payCost(Player player, HashMap<Material, Integer> selectedMaterials){
-        System.out.println("Paying Cost");
         HashMap<Material, Integer> tempMaterials = new HashMap<>();
         for (Material material : selectedMaterials.keySet()){
             tempMaterials.put(material, selectedMaterials.get(material));
         }
         List<Inventory> inventories = getRelevantInventories(player);
         for (Material material : tempMaterials.keySet()){
-            System.out.println("Material: " + material);
             for (Inventory inventory : inventories){
-                System.out.println("Inventory: " + inventory.getContents().toString());
-                System.out.println(tempMaterials.get(material));
                 if (tempMaterials.get(material) == 0){break;}
                 for (ItemStack item : inventory){
                     if (item == null){continue;}
-                    System.out.println(item.getType());
                     if (!material.equals(item.getType())){
-                        System.out.println(material + " Does not equals " + item.getType() + " ...continuing");
                         continue;}
                     int requiredAmount = tempMaterials.get(material);
-                    System.out.println("Removing item: " + material + " " + requiredAmount);
                     if (item.getAmount() >= requiredAmount){
-                        System.out.println("Required Amount Paid. Breaking Loop.");
                         item.setAmount(item.getAmount() - requiredAmount);
                         tempMaterials.put(material, 0);
                         break;
                     }
-                    System.out.println("Required Amount Not Paid. Setting item to 0.");
                     tempMaterials.put(material, requiredAmount - item.getAmount());
                     item.setAmount(0);
                 }
@@ -266,7 +250,6 @@ public class ClaimConfirm {
     }
 
     public static void reinforceBlocks(Player player, List<Block> blockSelect, HashMap<Material, Integer> selectedMaterials){
-        System.out.println("Reinforcing blocks");
         PlayerData playerData = PlayerData.player_data_hashmap.get(player.getUniqueId());
         Random random = new Random();
         // Iterate over the list and reinforce
@@ -277,15 +260,11 @@ public class ClaimConfirm {
             ArrayList<Material> keyList = new ArrayList<>(selectedMaterials.keySet());
             int randomNumber = random.nextInt(keyList.size());
             Material material = keyList.get(randomNumber);
-            System.out.println("Chosen Material: " + material);
             selectedMaterials.put(material, selectedMaterials.get(material) - 1);
-            System.out.println("New Material Count: " + selectedMaterials.get(material));
             if (selectedMaterials.get(material) == 0){
                 selectedMaterials.remove(material);
-                System.out.println("Removing: " + material);
             }
             Util.addReinforcement(block, material, playerData, false);
         }
-        player.sendMessage(ChatColor.GREEN + "Area claimed");
     }
 }
