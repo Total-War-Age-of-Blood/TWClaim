@@ -7,6 +7,7 @@ import com.ethan.twclaim.data.TribeData;
 import com.ethan.twclaim.data.Vault;
 import com.ethan.twclaim.util.Util;
 import com.jeff_media.customblockdata.CustomBlockData;
+import jdk.javadoc.internal.doclets.toolkit.util.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
@@ -54,8 +55,8 @@ public class Fortify implements Listener {
 
         // Check vaults for valid reinforcement
         ItemStack item;
-        ItemStack vaultItem = Vault.checkVaults(player);
-        if (vaultItem == null){
+        HashMap<Vault, ItemStack> vaultPair = Vault.checkVaults(player);
+        if (vaultPair == null){
             ItemStack inventoryItem = Util.findReinforcement(player.getInventory());
             if (inventoryItem == null){
                 // If no valid materials in inventory, send error message
@@ -65,12 +66,14 @@ public class Fortify implements Listener {
             } else {
                 item = inventoryItem;
                 // If there is a match, add reinforcement to the block and delete reinforcement item from inventory
-                Util.addReinforcement(block, item, playerData, e.getItemInHand(), false);
+                Util.addReinforcement(block, item, playerData, e.getItemInHand());
             }
         } else {
-            item = vaultItem;
-            System.out.println("Using item from vault: " + vaultItem.getItemMeta().getDisplayName());
-            Util.addReinforcement(block, item, playerData, e.getItemInHand(), true);
+            List<ItemStack> itemList = new ArrayList<>(vaultPair.values());
+            List<Vault> vaultList = new ArrayList<>(vaultPair.keySet());
+            Vault vault = vaultList.get(0);
+            item = itemList.get(0);
+            Util.addReinforcement(block, item, playerData, e.getItemInHand(), vault);
         }
 
         // Remove material from inventory

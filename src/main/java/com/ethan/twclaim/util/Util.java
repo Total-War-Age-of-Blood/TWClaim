@@ -428,7 +428,7 @@ public class Util {
     private static final NamespacedKey ownKey = new NamespacedKey(TWClaim.getPlugin(), "owner");
     private static final NamespacedKey key = new NamespacedKey(TWClaim.getPlugin(), "reinforcement");
     private static final NamespacedKey breakCount = new NamespacedKey(TWClaim.getPlugin(), "break_count");
-    private static final NamespacedKey fromVault = new NamespacedKey(TWClaim.getPlugin(), "fromVault");
+    private static final NamespacedKey vaultID = new NamespacedKey(TWClaim.getPlugin(), "vaultID");
 
     public static NamespacedKey getMaterialKey() {
         return materialKey;
@@ -446,10 +446,10 @@ public class Util {
         return breakCount;
     }
 
-    public static NamespacedKey getFromVault(){return fromVault;}
+    public static NamespacedKey getVaultID(){return vaultID;}
 
     // This will add the PDC keys to blocks that gain protection from any form of claiming
-    public static void addReinforcement(Block block, Material material, PlayerData playerData, boolean fromVault){
+    public static void addReinforcement(Block block, Material material, PlayerData playerData){
         PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
         NamespacedKey materialKey = getMaterialKey();
         container.set(materialKey, PersistentDataType.STRING, material.toString().toLowerCase());
@@ -466,10 +466,48 @@ public class Util {
             if (bastion.getName() == null){Bastion.nameBastion(bastion, UUID.fromString(container.get(ownKey, PersistentDataType.STRING)));}
             Bukkit.getPluginManager().callEvent(new BastionClaimEvent(bastion));}
         // If material was taken from vault, mark the block
-        if (fromVault){container.set(getFromVault(), PersistentDataType.BOOLEAN, true);} else {container.set(getFromVault(), PersistentDataType.BOOLEAN, false);}
+        container.set(getVaultID(), PersistentDataType.STRING, "null");
+    }
+    public static void addReinforcement(Block block, Material material, PlayerData playerData, Vault vault){
+        PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
+        NamespacedKey materialKey = getMaterialKey();
+        container.set(materialKey, PersistentDataType.STRING, material.toString().toLowerCase());
+        // Keeps track of how much damage has been done to the block
+        NamespacedKey breakCount = getBreakCount();
+        container.set(breakCount, PersistentDataType.INTEGER, 0);
+        // This key keeps track of the owning tribe
+        NamespacedKey ownKey = getOwnKey();
+        container.set(ownKey, PersistentDataType.STRING, playerData.getTarget().toString());
+        // If block is bastion, trigger bastionClaimEvent
+        if (isBastion(block)){
+            UUID uuid = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING));
+            Bastion bastion = Bastion.bastions.get(uuid);
+            if (bastion.getName() == null){Bastion.nameBastion(bastion, UUID.fromString(container.get(ownKey, PersistentDataType.STRING)));}
+            Bukkit.getPluginManager().callEvent(new BastionClaimEvent(bastion));
+        }
+        container.set(getVaultID(), PersistentDataType.STRING, vault.getUuid().toString());
     }
 
-    public static void addReinforcement(Block block, ItemStack item, PlayerData playerData, ItemStack heldItem, boolean fromVault){
+    public static void addReinforcement(Block block, ItemStack item, PlayerData playerData, ItemStack heldItem){
+        PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
+        NamespacedKey materialKey = getMaterialKey();
+        container.set(materialKey, PersistentDataType.STRING, item.getType().toString().toLowerCase());
+        // Keeps track of how much damage has been done to the block
+        NamespacedKey breakCount = getBreakCount();
+        container.set(breakCount, PersistentDataType.INTEGER, 0);
+        // This key keeps track of the owning tribe
+        NamespacedKey ownKey = getOwnKey();
+        container.set(ownKey, PersistentDataType.STRING, playerData.getTarget().toString());
+        // If block is bastion, trigger bastionClaimEvent
+        if (heldItem.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING)){
+            UUID uuid = UUID.fromString(container.get(new NamespacedKey(TWClaim.getPlugin(), "bastion"), PersistentDataType.STRING));
+            Bastion bastion = Bastion.bastions.get(uuid);
+            if (bastion.getName() == null){Bastion.nameBastion(bastion, UUID.fromString(container.get(ownKey, PersistentDataType.STRING)));}
+            Bukkit.getPluginManager().callEvent(new BastionClaimEvent(bastion));
+        }
+        container.set(getVaultID(), PersistentDataType.STRING, "null");
+    }
+    public static void addReinforcement(Block block, ItemStack item, PlayerData playerData, ItemStack heldItem, Vault vault){
         PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
         NamespacedKey materialKey = getMaterialKey();
         container.set(materialKey, PersistentDataType.STRING, item.getType().toString().toLowerCase());
@@ -485,8 +523,7 @@ public class Util {
             Bastion bastion = Bastion.bastions.get(uuid);
             if (bastion.getName() == null){Bastion.nameBastion(bastion, UUID.fromString(container.get(ownKey, PersistentDataType.STRING)));}
             Bukkit.getPluginManager().callEvent(new BastionClaimEvent(bastion));}
-        // If material was taken from vault, mark the block
-        if (fromVault){container.set(getFromVault(), PersistentDataType.BOOLEAN, true);} else {container.set(getFromVault(), PersistentDataType.BOOLEAN, false);}
+        container.set(getVaultID(), PersistentDataType.STRING, vault.getUuid().toString());
     }
 
 

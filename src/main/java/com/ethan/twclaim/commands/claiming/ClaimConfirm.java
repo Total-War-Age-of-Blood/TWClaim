@@ -1,9 +1,7 @@
 package com.ethan.twclaim.commands.claiming;
 
 import com.ethan.twclaim.TWClaim;
-import com.ethan.twclaim.data.Bastion;
-import com.ethan.twclaim.data.PlayerData;
-import com.ethan.twclaim.data.Vault;
+import com.ethan.twclaim.data.*;
 import com.ethan.twclaim.util.Util;
 import com.jeff_media.customblockdata.CustomBlockData;
 import net.kyori.adventure.text.Component;
@@ -75,8 +73,8 @@ public class ClaimConfirm {
             System.out.println("Material String: " + materialType);
             System.out.println("Material: " + Material.getMaterial(materialType));
             selectedMaterials.put(Material.getMaterial(materialType), volume);
-            payCost(player, selectedMaterials);
-            reinforceBlocks(player, blockSelect, selectedMaterials);
+            List<VaultValue> vaultValueList = payCost(player, selectedMaterials);
+            reinforceBlocks(player, blockSelect, selectedMaterials, vaultValueList);
             return true;
         }
 
@@ -89,8 +87,8 @@ public class ClaimConfirm {
                 twClaim.adventure().player(player).sendMessage(textComponent);
                 return true;
             }
-            payCost(player, selectedMaterials);
-            reinforceBlocks(player, blockSelect, selectedMaterials);
+            List<VaultValue> vaultValueList = payCost(player, selectedMaterials);
+            reinforceBlocks(player, blockSelect, selectedMaterials, vaultValueList);
             return true;
         } else{
             player.sendMessage(ChatColor.RED + "Not enough materials!");
@@ -161,9 +159,10 @@ public class ClaimConfirm {
 
     public static LinkedHashMap<Material, Integer> getReinforcementMaterials(Player player, HashMap<String, Integer> reinforcementTypes){
         LinkedHashMap<Material, Integer> materialCount = new LinkedHashMap<>();
-        List<Inventory> inventories = getRelevantInventories(player);
-
-        for (Inventory inventory : inventories){
+        RelevantInventory relevantInventory = getRelevantInventories(player);
+        HashMap<Vault, Inventory> vaults = relevantInventory.getVaults();
+        for (Vault vault : vaults.keySet()){
+            Inventory inventory = vaults.get(vault);
             for (ItemStack item : inventory){
                 if (item == null){continue;}
                 if (!reinforcementTypes.containsKey(item.getType().toString().toLowerCase())){continue;}
@@ -177,20 +176,19 @@ public class ClaimConfirm {
         return materialCount;
     }
 
-    public static List<Inventory> getRelevantInventories(Player player){
+    public static RelevantInventory getRelevantInventories(Player player){
         PlayerData playerData = PlayerData.player_data_hashmap.get(player.getUniqueId());
         Inventory playerInventory = player.getInventory();
-        List<Inventory> inventories = new ArrayList<>();
+        HashMap<Vault, Inventory> inventories = new HashMap<>();
         UUID target = playerData.getTarget();
         for (Vault vault : Vault.vaults.values()){
             UUID owner = vault.getOwner();
             if (!target.equals(owner) && !player.getUniqueId().equals(owner)){continue;}
             Chest chest = (Chest) Bukkit.getWorld(vault.getWorldID()).getBlockAt(vault.getCoordinates()[0], vault.getCoordinates()[1], vault.getCoordinates()[2]).getState();
             Inventory chestInventory = chest.getInventory();
-            inventories.add(chestInventory);
+            inventories.put(vault, chestInventory);
         }
-        inventories.add(playerInventory);
-        return inventories;
+        return new RelevantInventory(inventories, playerInventory);
     }
 
     public static String enoughForOne(int volume, HashMap<Material, Integer> materialCount){
@@ -223,33 +221,43 @@ public class ClaimConfirm {
         return new HashMap<>();
     }
 
-    public static void payCost(Player player, HashMap<Material, Integer> selectedMaterials){
+    public static List<VaultValue> payCost(Player player, HashMap<Material, Integer> selectedMaterials){
+        List<VaultValue> vaultValueList = new ArrayList<>();
         HashMap<Material, Integer> tempMaterials = new HashMap<>();
         for (Material material : selectedMaterials.keySet()){
             tempMaterials.put(material, selectedMaterials.get(material));
         }
-        List<Inventory> inventories = getRelevantInventories(player);
-        for (Material material : tempMaterials.keySet()){
-            for (Inventory inventory : inventories){
+        RelevantInventory relevantInventory = getRelevantInventories(player);
+        HashMap<Vault, Inventory> vaults = relevantInventory.getVaults();
+        for (Vault vault : vaults.keySet()){
+            HashMap<Material, Integer> vaultMats = new HashMap<>();
+            for (Material material : tempMaterials.keySet()){
+                Inventory inventory = vaults.get(vault);
                 if (tempMaterials.get(material) == 0){break;}
+                int matsPaid = 0;
                 for (ItemStack item : inventory){
                     if (item == null){continue;}
-                    if (!material.equals(item.getType())){
-                        continue;}
+                    if (!material.equals(item.getType())){continue;}
                     int requiredAmount = tempMaterials.get(material);
                     if (item.getAmount() >= requiredAmount){
                         item.setAmount(item.getAmount() - requiredAmount);
+                        matsPaid += requiredAmount;
                         tempMaterials.put(material, 0);
                         break;
                     }
                     tempMaterials.put(material, requiredAmount - item.getAmount());
+                    matsPaid += item.getAmount();
                     item.setAmount(0);
                 }
+                vaultMats.put(material, matsPaid);
             }
+            VaultValue vaultValue = new VaultValue(vault, vaultMats);
+            vaultValueList.add(vaultValue);
         }
+        return vaultValueList;
     }
 
-    public static void reinforceBlocks(Player player, List<Block> blockSelect, HashMap<Material, Integer> selectedMaterials){
+    public static void reinforceBlocks(Player player, List<Block> blockSelect, HashMap<Material, Integer> selectedMaterials, List<VaultValue> vaultValueList){
         PlayerData playerData = PlayerData.player_data_hashmap.get(player.getUniqueId());
         Random random = new Random();
         // Iterate over the list and reinforce
@@ -264,7 +272,21 @@ public class ClaimConfirm {
             if (selectedMaterials.get(material) == 0){
                 selectedMaterials.remove(material);
             }
-            Util.addReinforcement(block, material, playerData, false);
+
+            // Assign a vault
+            Vault assignedVault = null;
+            for (VaultValue vaultValue : vaultValueList){
+                Vault vault = vaultValue.getVault();
+                HashMap<Material, Integer> matsPaid = vaultValue.getMatsPaid();
+                if (matsPaid.get(material) > 0){
+                    assignedVault = vault;
+                    matsPaid.put(material, matsPaid.get(material) - 1);
+                    break;
+                }
+            }
+            if (assignedVault == null){System.out.println("Assigned Vault null " + block.getX() + " " + block.getY() + " " + block.getZ());}
+            Util.addReinforcement(block, material, playerData, assignedVault);
         }
+        player.sendMessage(ChatColor.GREEN + "Area Claimed");
     }
 }

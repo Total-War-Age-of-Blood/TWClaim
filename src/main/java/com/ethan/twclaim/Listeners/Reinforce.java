@@ -7,6 +7,7 @@ import com.ethan.twclaim.data.Vault;
 import com.ethan.twclaim.util.Util;
 import com.ethan.twclaim.data.TribeData;
 import com.jeff_media.customblockdata.CustomBlockData;
+import jdk.javadoc.internal.doclets.toolkit.util.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -22,7 +23,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 public class Reinforce implements Listener {
@@ -72,8 +75,8 @@ public class Reinforce implements Listener {
 
             // Check vaults for valid reinforcement
             ItemStack item;
-            ItemStack vaultItem = Vault.checkVaults(player);
-            if (vaultItem == null){
+            HashMap<Vault, ItemStack> vaultPair = Vault.checkVaults(player);
+            if (vaultPair == null){
                 ItemStack inventoryItem = Util.findReinforcement(player.getInventory());
                 if (inventoryItem == null){
                     // If no valid materials in inventory, send error message
@@ -83,12 +86,15 @@ public class Reinforce implements Listener {
                 } else {
                     item = inventoryItem;
                     // If there is a match, add reinforcement to the block and delete reinforcement item from inventory
-                    Util.addReinforcement(block, item.getType(), playerData, false);
+                    Util.addReinforcement(block, item.getType(), playerData);
                 }
             } else {
-                item = vaultItem;
-                System.out.println("Using item from vault: " + vaultItem.getItemMeta().getDisplayName());
-                Util.addReinforcement(block, item.getType(), playerData, false);
+                List<ItemStack> itemList = new ArrayList<>(vaultPair.values());
+                List<Vault> vaultList = new ArrayList<>(vaultPair.keySet());
+                Vault vault = vaultList.get(0);
+                item = itemList.get(0);
+
+                Util.addReinforcement(block, item.getType(), playerData, vault);
             }
 
             // Remove material from inventory
@@ -108,7 +114,7 @@ public class Reinforce implements Listener {
             // Validate material
             HashMap<String, Integer> reinforcements = Util.getReinforcementTypes();
             if (reinforcements.containsKey(itemName)){
-                Util.addReinforcement(block, item.getType(), playerData, false);
+                Util.addReinforcement(block, item.getType(), playerData);
                 item.setAmount(item.getAmount() - 1);
                 player.getInventory().setItem(EquipmentSlot.HAND, item);
                 e.setCancelled(true);

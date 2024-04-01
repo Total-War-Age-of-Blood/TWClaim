@@ -55,3 +55,6 @@ map-radius: 4
 
 # The limit of blocks someone can select at once with the claim command
 claim-limit: 1000
+
+# The maximum distance that a full vault will check for another vault with space when an item needs to be returned.
+vault-max-trade-range: 100

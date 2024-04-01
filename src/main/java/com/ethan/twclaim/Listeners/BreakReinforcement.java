@@ -102,7 +102,7 @@ public class BreakReinforcement implements Listener {
                 if (100 - (breakCount / configReinforcement * 100) >= recoverMin){
                     ItemStack item = new ItemStack(Material.matchMaterial(material));
                     // If material is from vault, send back to vault if possible.
-                    if (Vault.itemBackToVault(player, container, owner, item)){return false;}
+                    if (Vault.itemBackToVault(player, container, item)){return false;}
                     player.getWorld().dropItem(block.getLocation(), item);
                 }
                 return false;
@@ -114,7 +114,7 @@ public class BreakReinforcement implements Listener {
             if (100 - (((float) breakCount / (float) configReinforcement) * 100) >= (float) recoverMin){
                 ItemStack item = new ItemStack(Material.matchMaterial(material));
                 // If material is from vault, send back to vault if possible.
-                if (Vault.itemBackToVault(player, container, owner, item)){return false;}
+                if (Vault.itemBackToVault(player, container, item)){return false;}
                 player.getWorld().dropItem(block.getLocation(), item);
             }
             return false;
