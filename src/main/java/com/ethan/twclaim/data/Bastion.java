@@ -96,6 +96,7 @@ public class Bastion {
         coordinates[2] = block.getZ();
         Bastion bastion = new Bastion(uuid, coordinates, radius, new ArrayList<>(), block.getWorld().getUID(), System.currentTimeMillis());
         bastions.put(uuid, bastion);
+        AutoSave.setChange(true);
     }
 
     public static void nameBastion(Bastion bastion, UUID uuid){
@@ -107,6 +108,7 @@ public class Bastion {
             PlayerData playerData = PlayerData.player_data_hashmap.get(uuid);
             bastion.setName(playerData.getDisplay());
         }
+        AutoSave.setChange(true);
     }
 // Finds oldest bastion or extender in range. Returns oldest bastion or father of oldest extender.
     public static Bastion inClaimRange(Location location){
@@ -217,6 +219,7 @@ public class Bastion {
             Bastion bastion = Bastion.bastions.get(bastionID);
             Bukkit.getPluginManager().callEvent(new BastionChangeFuelStateEvent(bastion, true));
         }
+        AutoSave.setChange(true);
     }
 
     public static void bastionFuelClose(Inventory gui, Player player){

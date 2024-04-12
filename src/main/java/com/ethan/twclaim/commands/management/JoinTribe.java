@@ -1,5 +1,6 @@
 package com.ethan.twclaim.commands.management;
 
+import com.ethan.twclaim.data.AutoSave;
 import com.ethan.twclaim.data.PlayerData;
 import com.ethan.twclaim.data.TribeData;
 import com.ethan.twclaim.util.Util;
@@ -34,6 +35,7 @@ public class JoinTribe {
         // Message player and tribe owner
         if (Bukkit.getPlayer(tribe.getLeader()) != null){Bukkit.getPlayer(tribe.getLeader()).sendMessage(player.getDisplayName() + " joined " + tribe.getName());}
         player.sendMessage("Joined " + tribe.getName());
+        AutoSave.setChange(true);
         return true;
     }
 }

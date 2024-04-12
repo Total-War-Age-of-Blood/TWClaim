@@ -59,6 +59,7 @@ public class Extender {
 
         PersistentDataContainer container = new CustomBlockData(block, TWClaim.getPlugin());
         container.set(new NamespacedKey(TWClaim.getPlugin(), "ExtenderUUID"), PersistentDataType.STRING, uuid.toString());
+        AutoSave.setChange(true);
     }
 
     UUID uuid;

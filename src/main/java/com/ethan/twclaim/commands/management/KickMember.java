@@ -1,6 +1,7 @@
 package com.ethan.twclaim.commands.management;
 
 import com.ethan.twclaim.TWClaim;
+import com.ethan.twclaim.data.AutoSave;
 import com.ethan.twclaim.data.PlayerData;
 import com.ethan.twclaim.data.TribeData;
 import com.ethan.twclaim.util.Util;
@@ -75,6 +76,7 @@ public class KickMember {
         TribeData.tribe_hashmap.put(tribe.getTribeID(), tribe);
         // Send kicker confirmation message
         player.sendMessage("Kicked " + playerName + " from " + tribeName);
+        AutoSave.setChange(true);
         return true;
     }
 }

@@ -1,5 +1,6 @@
 package com.ethan.twclaim.commands.management;
 
+import com.ethan.twclaim.data.AutoSave;
 import com.ethan.twclaim.data.PlayerData;
 import com.ethan.twclaim.data.TribeData;
 import com.ethan.twclaim.util.Util;
@@ -34,5 +35,6 @@ public class LeaveTribe {
         TribeData.tribe_hashmap.put(tribeData.getTribeID(), tribeData);
 
         player.sendMessage("You have left " + tribeData.getName());
+        AutoSave.setChange(true);
     }
 }

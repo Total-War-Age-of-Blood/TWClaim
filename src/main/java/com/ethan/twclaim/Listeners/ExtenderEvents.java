@@ -1,6 +1,7 @@
 package com.ethan.twclaim.Listeners;
 
 import com.ethan.twclaim.TWClaim;
+import com.ethan.twclaim.data.AutoSave;
 import com.ethan.twclaim.data.Bastion;
 import com.ethan.twclaim.data.Extender;
 import com.ethan.twclaim.data.TribeData;
@@ -35,6 +36,7 @@ public class ExtenderEvents implements Listener {
         if (!container.has(new NamespacedKey(TWClaim.getPlugin(), "extender"), PersistentDataType.STRING)){return;}
         Extender.createExtender(e.getBlock());
         e.getPlayer().sendMessage("Extender Placed.");
+        AutoSave.setChange(true);
     }
 
     @EventHandler

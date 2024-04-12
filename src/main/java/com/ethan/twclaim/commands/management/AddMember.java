@@ -1,6 +1,7 @@
 package com.ethan.twclaim.commands.management;
 
 import com.ethan.twclaim.TWClaim;
+import com.ethan.twclaim.data.AutoSave;
 import com.ethan.twclaim.data.PlayerData;
 import com.ethan.twclaim.data.TribeData;
 import com.ethan.twclaim.util.Util;
@@ -49,6 +50,7 @@ public class AddMember {
             player.sendMessage("Invited " + playerName + " to " + tribeName);
             Player invitedPlayer = Bukkit.getPlayer(invited.getUuid());
             invitedPlayer.sendMessage("You have been invited to " + tribeName + ". Use /tribe join " + tribeName + " to join.");
+            AutoSave.setChange(true);
             return true;
         }
         // If the player is offline, search player files
@@ -76,6 +78,7 @@ public class AddMember {
                 invitedFileWriter.flush();
                 invitedFileWriter.close();
                 player.sendMessage("Invited " + playerName + " to " + tribeName);
+                AutoSave.setChange(true);
                 return true;
 
             } catch (IOException e) {

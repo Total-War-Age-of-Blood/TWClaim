@@ -52,8 +52,7 @@ public class Vault {
 
     public static void destroyVault(Vault vault) {
         vaults.remove(vault.getUuid());
-        System.out.println("Vault Destroyed");
-        System.out.println(Vault.vaults.keySet());
+        AutoSave.setChange(true);
     }
 
     public static HashMap<Vault, ItemStack> checkVaults(Player player){
@@ -159,6 +158,7 @@ public class Vault {
         this.owner = owner;
         this.worldID = worldID;
         vaults.put(uuid, this);
+        AutoSave.setChange(true);
     }
 
     public UUID getUuid() {

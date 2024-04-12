@@ -120,7 +120,9 @@ public final class TWClaim extends JavaPlugin {
         // Convert to minutes
         period = period * 20 * 60;
         BukkitTask fuelConsumption = new FuelConsumption().runTaskTimer(this, period, period);
-
+        int autoSavePeriod = this.getConfig().getInt("auto-save");
+        autoSavePeriod = autoSavePeriod * 20 * 60;
+        BukkitTask autoSave = new AutoSave().runTaskTimer(this, autoSavePeriod, autoSavePeriod);
     }
 
     @Override

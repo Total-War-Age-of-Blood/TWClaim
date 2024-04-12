@@ -1,5 +1,6 @@
 package com.ethan.twclaim.commands.management;
 
+import com.ethan.twclaim.data.AutoSave;
 import com.ethan.twclaim.data.PlayerData;
 import com.ethan.twclaim.data.TribeData;
 import com.ethan.twclaim.util.Util;
@@ -55,6 +56,7 @@ public class Perms {
         tribeData.setPermGroups(permsGroups);
         TribeData.tribe_hashmap.put(tribeData.getTribeID(), tribeData);
         player.sendMessage("Created " + groupName + " in " + tribeName + " with perms " + permsName);
+        AutoSave.setChange(true);
     }
 
     public static void deletePerms(Player player, String[] args){
@@ -107,6 +109,7 @@ public class Perms {
         permsGroups.remove(args[3]);
         TribeData.tribe_hashmap.put(tribeData.getTribeID(), tribeData);
         player.sendMessage("Deleted " + groupName + " from " + tribeName);
+        AutoSave.setChange(true);
     }
 
     public static void editPerms(Player player, String[] args){
@@ -154,6 +157,7 @@ public class Perms {
         tribeData.setPermGroups(permsGroups);
         TribeData.tribe_hashmap.put(tribeData.getTribeID(), tribeData);
         player.sendMessage("Changed " + groupName + " perms to " + permsName);
+        AutoSave.setChange(true);
     }
 
     public static void promoteDemote(Player player, String[] args){
@@ -200,5 +204,6 @@ public class Perms {
         TribeData.tribe_hashmap.put(tribeData.getTribeID(), tribeData);
 
         player.sendMessage("Promoted " + playerName + " to " + groupName);
+        AutoSave.setChange(true);
     }
 }

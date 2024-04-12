@@ -58,3 +58,6 @@ claim-limit: 1000
 
 # The maximum distance that a full vault will check for another vault with space when an item needs to be returned.
 vault-max-trade-range: 100
+
+# How often (minutes) to auto-save
+auto-save: 10
