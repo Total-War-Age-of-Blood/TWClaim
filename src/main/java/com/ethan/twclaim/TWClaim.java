@@ -5,6 +5,7 @@ import com.ethan.twclaim.commands.TabComplete;
 import com.ethan.twclaim.commands.TribeCommand;
 import com.ethan.twclaim.compatibility.BigDoorsOpener;
 import com.ethan.twclaim.compatibility.Dynmap;
+import com.ethan.twclaim.compatibility.Movecraft;
 import com.ethan.twclaim.data.*;
 import com.ethan.twclaim.guis.BastionFuelGUI;
 import com.ethan.twclaim.guis.BastionGUI;
@@ -90,6 +91,7 @@ public final class TWClaim extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new Pistons(), this);
         Bukkit.getPluginManager().registerEvents(new BigDoorsOpener(), this);
         Bukkit.getPluginManager().registerEvents(new VaultListener(), this);
+        Bukkit.getPluginManager().registerEvents(new Movecraft(), this);
 
         final Dynmap eventListener = new Dynmap();
         DynmapCommonAPIListener.register(eventListener);
