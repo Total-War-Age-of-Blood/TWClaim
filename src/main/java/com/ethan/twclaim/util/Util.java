@@ -429,24 +429,30 @@ public class Util {
     private static final NamespacedKey key = new NamespacedKey(TWClaim.getPlugin(), "reinforcement");
     private static final NamespacedKey breakCount = new NamespacedKey(TWClaim.getPlugin(), "break_count");
     private static final NamespacedKey vaultID = new NamespacedKey(TWClaim.getPlugin(), "vaultID");
+    private static final NamespacedKey materialNewKey = new NamespacedKey(TWClaim.getPlugin(), "materialNew");
+    private static final NamespacedKey ownNewKey = new NamespacedKey(TWClaim.getPlugin(), "ownerNew");
+    private static final NamespacedKey keyNew = new NamespacedKey(TWClaim.getPlugin(), "reinforcementNew");
+    private static final NamespacedKey breakCountNew = new NamespacedKey(TWClaim.getPlugin(), "break_count_New");
+    private static final NamespacedKey vaultIDNew = new NamespacedKey(TWClaim.getPlugin(), "vaultIDNew");
 
     public static NamespacedKey getMaterialKey() {
         return materialKey;
     }
-
     public static NamespacedKey getOwnKey() {
         return ownKey;
     }
-
     public static NamespacedKey getKey() {
         return key;
     }
-
     public static NamespacedKey getBreakCount(){
         return breakCount;
     }
-
     public static NamespacedKey getVaultID(){return vaultID;}
+    public static NamespacedKey getMaterialNewKey(){return materialNewKey;}
+    public static NamespacedKey getKeyNew(){return keyNew;}
+    public static NamespacedKey getOwnNewKey(){return ownNewKey;}
+    public static NamespacedKey getBreakCountNew(){return breakCountNew;}
+    public static NamespacedKey getVaultIDNew(){return vaultIDNew;}
 
     // This will add the PDC keys to blocks that gain protection from any form of claiming
     public static void addReinforcement(Block block, Material material, PlayerData playerData){
