@@ -173,6 +173,15 @@ public class ClaimConfirm {
                 materialCount.put(item.getType(), item.getAmount());
             }
         }
+        for (ItemStack item : relevantInventory.getPlayerInventory()){
+            if (item == null){continue;}
+            if (!reinforcementTypes.containsKey(item.getType().toString().toLowerCase())){continue;}
+            if (materialCount.containsKey(item.getType())){
+                materialCount.put(item.getType(), item.getAmount() + materialCount.get(item.getType()));
+                continue;
+            }
+            materialCount.put(item.getType(), item.getAmount());
+        }
         return materialCount;
     }
 
@@ -233,7 +242,7 @@ public class ClaimConfirm {
             HashMap<Material, Integer> vaultMats = new HashMap<>();
             for (Material material : tempMaterials.keySet()){
                 Inventory inventory = vaults.get(vault);
-                if (tempMaterials.get(material) == 0){break;}
+                if (tempMaterials.get(material) == 0){continue;}
                 int matsPaid = 0;
                 for (ItemStack item : inventory){
                     if (item == null){continue;}
@@ -253,6 +262,22 @@ public class ClaimConfirm {
             }
             VaultValue vaultValue = new VaultValue(vault, vaultMats);
             vaultValueList.add(vaultValue);
+        }
+        // Cycle through player inventory if vaults do not have enough
+        Inventory playerInventory = relevantInventory.getPlayerInventory();
+        for (Material material : tempMaterials.keySet()){
+            if (tempMaterials.get(material) == 0){continue;}
+            for (ItemStack item : playerInventory){
+                if (item == null){continue;}
+                if (!material.equals(item.getType())){continue;}
+                int requiredAmount = tempMaterials.get(material);
+                if (item.getAmount() >= requiredAmount){
+                    item.setAmount(item.getAmount() - requiredAmount);
+                    tempMaterials.put(material, 0);
+                    break;
+                }
+
+            }
         }
         return vaultValueList;
     }
@@ -284,7 +309,12 @@ public class ClaimConfirm {
                     break;
                 }
             }
-            if (assignedVault == null){System.out.println("Assigned Vault null " + block.getX() + " " + block.getY() + " " + block.getZ());}
+            // If assigned vault is still null, that means it is from the player's inventory
+            if (assignedVault == null){
+                Util.addReinforcement(block, material, playerData);
+                System.out.println("Assigned Vault null " + block.getX() + " " + block.getY() + " " + block.getZ());
+                continue;
+            }
             Util.addReinforcement(block, material, playerData, assignedVault);
         }
         player.sendMessage(ChatColor.GREEN + "Area Claimed");

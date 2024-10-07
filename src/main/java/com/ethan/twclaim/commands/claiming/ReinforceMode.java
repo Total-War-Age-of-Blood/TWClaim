@@ -7,7 +7,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 public class ReinforceMode {
-    // TODO prevent reinforce if in bastion without permission
     public static boolean reinforceTribe(Player player, String[] args, PlayerData playerData){
         String tribeName = args[1];
         // Search for tribe in tribe hashmap return error if not found

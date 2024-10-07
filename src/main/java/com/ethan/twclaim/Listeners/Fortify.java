@@ -17,6 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
@@ -56,8 +57,8 @@ public class Fortify implements Listener {
         // Check vaults for valid reinforcement
         ItemStack item;
         HashMap<Vault, ItemStack> vaultPair = Vault.checkVaults(player);
+        ItemStack inventoryItem = Util.findReinforcement(player.getInventory());
         if (vaultPair == null){
-            ItemStack inventoryItem = Util.findReinforcement(player.getInventory());
             if (inventoryItem == null){
                 // If no valid materials in inventory, send error message
                 player.sendMessage(ChatColor.RED + "No valid reinforcement materials.");
@@ -77,7 +78,19 @@ public class Fortify implements Listener {
         }
 
         // Remove material from inventory
-        item.setAmount(item.getAmount() - 1);
+        // Check if the block being placed is also the material being used to reinforce and if the block being placed is the only stack of that material to avoid only removing one item from inventory.
+        ItemStack handItem = e.getItemInHand();
+        if (inventoryItem != null){
+            if (inventoryItem.getType().equals(handItem.getType())){
+                int firstItem = player.getInventory().first(inventoryItem.getType());
+                int heldItem = player.getInventory().getHeldItemSlot();
+                if (firstItem < heldItem){
+                    item.setAmount(item.getAmount() - 1);
+                } else {
+                    item.setAmount(item.getAmount() - 2);
+                }
+            }
+        }
         // Effects
         e.getPlayer().spawnParticle(Particle.ENCHANTMENT_TABLE, e.getBlock().getLocation(), 20);
         e.getPlayer().playSound(e.getBlock().getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 2);
